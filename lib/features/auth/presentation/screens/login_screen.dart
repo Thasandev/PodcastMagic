@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/shared_widgets.dart';
@@ -208,10 +209,13 @@ class _LoginScreenState extends State<LoginScreen>
                   controller: _phoneController,
                   style: const TextStyle(color: Colors.white, fontSize: 16, letterSpacing: 1),
                   keyboardType: TextInputType.phone,
+                  maxLength: 10,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   decoration: const InputDecoration(
                     hintText: 'Enter mobile number',
                     hintStyle: TextStyle(color: Colors.white38),
                     border: InputBorder.none,
+                    counterText: '',
                     contentPadding: EdgeInsets.symmetric(horizontal: 16),
                     enabledBorder: InputBorder.none,
                     focusedBorder: InputBorder.none,
@@ -227,6 +231,15 @@ class _LoginScreenState extends State<LoginScreen>
           icon: Icons.sms_outlined,
           isLoading: _isLoading,
           onPressed: () {
+            if (_phoneController.text.length != 10) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Please enter a valid 10-digit mobile number'),
+                  backgroundColor: Colors.redAccent,
+                ),
+              );
+              return;
+            }
             setState(() {
               _isLoading = true;
             });
