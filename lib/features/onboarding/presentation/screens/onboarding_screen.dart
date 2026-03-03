@@ -136,56 +136,61 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Widget _buildWelcomePage() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 28),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: 120,
-            height: 120,
-            decoration: BoxDecoration(
-              gradient: AppColors.primaryGradient,
-              borderRadius: BorderRadius.circular(30),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.4),
-                  blurRadius: 40,
-                  offset: const Offset(0, 12),
-                ),
-              ],
-            ),
-            child: const Icon(Icons.headphones_rounded, color: Colors.white, size: 56),
-          ),
-          const SizedBox(height: 40),
-          Text(
-            'Welcome to Kaan! 👋',
-            style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w800,
-                ),
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Transform your daily commute into a\npowerful learning experience',
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: Colors.white.withValues(alpha: 0.6),
-                  height: 1.6,
-                ),
-          ),
-          const SizedBox(height: 40),
-          Row(
+    return Center(
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 20),
+          child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              _FeatureChip(icon: '🎧', label: 'Curated Audio'),
-              const SizedBox(width: 12),
-              _FeatureChip(icon: '🤖', label: 'AI Powered'),
-              const SizedBox(width: 12),
-              _FeatureChip(icon: '🏆', label: 'Gamified'),
+              Container(
+                width: 120,
+                height: 120,
+                decoration: BoxDecoration(
+                  gradient: AppColors.primaryGradient,
+                  borderRadius: BorderRadius.circular(30),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primary.withValues(alpha: 0.4),
+                      blurRadius: 40,
+                      offset: const Offset(0, 12),
+                    ),
+                  ],
+                ),
+                child: const Icon(Icons.headphones_rounded, color: Colors.white, size: 56),
+              ),
+              const SizedBox(height: 40),
+              Text(
+                'Welcome to Kaan! 👋',
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.displaySmall?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
+                    ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Transform your daily commute into a\npowerful learning experience',
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                      color: Colors.white.withValues(alpha: 0.6),
+                      height: 1.6,
+                    ),
+              ),
+              const SizedBox(height: 40),
+              Wrap(
+                alignment: WrapAlignment.center,
+                spacing: 12,
+                runSpacing: 12,
+                children: const [
+                  _FeatureChip(icon: '🎧', label: 'Curated Audio'),
+                  _FeatureChip(icon: '🤖', label: 'AI Powered'),
+                  _FeatureChip(icon: '🏆', label: 'Gamified'),
+                ],
+              ),
             ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -359,151 +364,164 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Widget _buildCommutePage() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 28),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text('🚇', style: const TextStyle(fontSize: 60)),
-          const SizedBox(height: 24),
-          Text(
-            'How long is your commute?',
-            style: Theme.of(context).textTheme.headlineLarge?.copyWith(color: Colors.white),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 12),
-          Text(
-            'We\'ll curate the perfect playlist length',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white60),
-          ),
-          const SizedBox(height: 48),
-          Text(
-            '${_commuteDuration.round()} min',
-            style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.w800,
-                ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            _commuteDuration <= 20
-                ? 'Quick ride 🏍️'
-                : _commuteDuration <= 45
-                    ? 'Average commute 🚌'
-                    : _commuteDuration <= 75
-                        ? 'Long journey 🚂'
-                        : 'Marathon commute 🚀',
-            style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 14),
-          ),
-          const SizedBox(height: 32),
-          SliderTheme(
-            data: SliderThemeData(
-              activeTrackColor: AppColors.primary,
-              inactiveTrackColor: Colors.white.withValues(alpha: 0.15),
-              thumbColor: AppColors.primary,
-              overlayColor: AppColors.primary.withValues(alpha: 0.2),
-              trackHeight: 6,
-              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 14),
-            ),
-            child: Slider(
-              value: _commuteDuration,
-              min: AppConstants.minCommuteDuration.toDouble(),
-              max: AppConstants.maxCommuteDuration.toDouble(),
-              divisions: 21,
-              onChanged: (val) => setState(() => _commuteDuration = val),
-            ),
-          ),
-          const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Center(
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 20),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text('15 min', style: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 12)),
-              Text('120 min', style: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 12)),
+              const Text('🚇', style: TextStyle(fontSize: 60)),
+              const SizedBox(height: 24),
+              Text(
+                'How long is your commute?',
+                style: Theme.of(context).textTheme.headlineLarge?.copyWith(color: Colors.white),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'We\'ll curate the perfect playlist length',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white60),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 48),
+              Text(
+                '${_commuteDuration.round()} min',
+                style: Theme.of(context).textTheme.displayLarge?.copyWith(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w800,
+                    ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                _commuteDuration <= 20
+                    ? 'Quick ride 🏍️'
+                    : _commuteDuration <= 45
+                        ? 'Average commute 🚌'
+                        : _commuteDuration <= 75
+                            ? 'Long journey 🚂'
+                            : 'Marathon commute 🚀',
+                style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 14),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 32),
+              SliderTheme(
+                data: SliderThemeData(
+                  activeTrackColor: AppColors.primary,
+                  inactiveTrackColor: Colors.white.withValues(alpha: 0.15),
+                  thumbColor: AppColors.primary,
+                  overlayColor: AppColors.primary.withValues(alpha: 0.2),
+                  trackHeight: 6,
+                  thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 14),
+                ),
+                child: Slider(
+                  value: _commuteDuration,
+                  min: AppConstants.minCommuteDuration.toDouble(),
+                  max: AppConstants.maxCommuteDuration.toDouble(),
+                  divisions: 21,
+                  onChanged: (val) => setState(() => _commuteDuration = val),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('15 min', style: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 12)),
+                  Text('120 min', style: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 12)),
+                ],
+              ),
             ],
           ),
-        ],
+        ),
       ),
     );
   }
 
   Widget _buildVoicePage() {
     final voices = ['Confident Female', 'Calm Male', 'Energetic Female', 'Deep Male', 'Friendly Female'];
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 28),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text('🎙️', style: const TextStyle(fontSize: 60)),
-          const SizedBox(height: 24),
-          Text(
-            'Choose your narrator',
-            style: Theme.of(context).textTheme.headlineLarge?.copyWith(color: Colors.white),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'AI-generated summaries will use this voice',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white60),
-          ),
-          const SizedBox(height: 36),
-          ...voices.map((voice) {
-            final isSelected = _selectedVoice == voice;
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: InkWell(
-                onTap: () => setState(() => _selectedVoice = voice),
-                borderRadius: BorderRadius.circular(14),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                  decoration: BoxDecoration(
-                    color: isSelected
-                        ? AppColors.primary.withValues(alpha: 0.15)
-                        : Colors.white.withValues(alpha: 0.06),
+    return Center(
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 20),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text('🎙️', style: TextStyle(fontSize: 60)),
+              const SizedBox(height: 24),
+              Text(
+                'Choose your narrator',
+                style: Theme.of(context).textTheme.headlineLarge?.copyWith(color: Colors.white),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'AI-generated summaries will use this voice',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white60),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 36),
+              ...voices.map((voice) {
+                final isSelected = _selectedVoice == voice;
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: InkWell(
+                    onTap: () => setState(() => _selectedVoice = voice),
                     borderRadius: BorderRadius.circular(14),
-                    border: Border.all(
-                      color: isSelected ? AppColors.primary : Colors.white.withValues(alpha: 0.1),
-                      width: isSelected ? 2 : 1,
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? AppColors.primary.withValues(alpha: 0.15)
+                            : Colors.white.withValues(alpha: 0.06),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: isSelected ? AppColors.primary : Colors.white.withValues(alpha: 0.1),
+                          width: isSelected ? 2 : 1,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 44,
+                            height: 44,
+                            decoration: BoxDecoration(
+                              color: isSelected
+                                  ? AppColors.primary.withValues(alpha: 0.3)
+                                  : Colors.white.withValues(alpha: 0.08),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              Icons.record_voice_over,
+                              color: isSelected ? AppColors.primary : Colors.white54,
+                              size: 22,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Text(
+                              voice,
+                              style: TextStyle(
+                                color: isSelected ? AppColors.primary : Colors.white70,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 15,
+                              ),
+                            ),
+                          ),
+                          Icon(
+                            isSelected ? Icons.check_circle : Icons.play_circle_outline,
+                            color: isSelected ? AppColors.primary : Colors.white38,
+                            size: 28,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          color: isSelected
-                              ? AppColors.primary.withValues(alpha: 0.3)
-                              : Colors.white.withValues(alpha: 0.08),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          Icons.record_voice_over,
-                          color: isSelected ? AppColors.primary : Colors.white54,
-                          size: 22,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Text(
-                        voice,
-                        style: TextStyle(
-                          color: isSelected ? AppColors.primary : Colors.white70,
-                          fontWeight: FontWeight.w600,
-                          fontSize: 15,
-                        ),
-                      ),
-                      const Spacer(),
-                      Icon(
-                        isSelected ? Icons.check_circle : Icons.play_circle_outline,
-                        color: isSelected ? AppColors.primary : Colors.white38,
-                        size: 28,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            );
-          }),
-        ],
+                );
+              }),
+            ],
+          ),
+        ),
       ),
     );
   }
