@@ -1,0 +1,75 @@
+name: kaan
+description: "Kaan - Hyper-personalized audio platform for Indian commuters"
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.8.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State Management
+  flutter_riverpod: ^2.6.1
+  riverpod_annotation: ^2.6.1
+
+  # Navigation
+  go_router: ^14.8.1
+
+  # Supabase
+  supabase_flutter: ^2.9.0
+
+  # Audio
+  just_audio: ^0.9.43
+  audio_service: ^0.18.17
+  audio_session: ^0.1.23
+
+  # Networking
+  dio: ^5.7.0
+  web_socket_channel: ^3.0.2
+
+  # UI & Design
+  google_fonts: ^6.2.1
+  flutter_svg: ^2.0.17
+  cached_network_image: ^3.4.1
+  shimmer: ^3.0.0
+  fl_chart: ^0.70.2
+  lottie: ^3.3.1
+  flutter_animate: ^4.5.2
+  icons_plus: ^5.0.0
+  percent_indicator: ^4.2.3
+
+  # Storage
+  shared_preferences: ^2.5.3
+  flutter_secure_storage: ^9.2.4
+  path_provider: ^2.1.5
+
+  # Utilities
+  intl: ^0.20.2
+  uuid: ^4.5.1
+  url_launcher: ^6.3.1
+  share_plus: ^10.1.4
+  image_picker: ^1.1.2
+  permission_handler: ^11.4.0
+  connectivity_plus: ^6.1.4
+  record: ^5.2.0
+
+  # Icons
+  cupertino_icons: ^1.0.8
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+  riverpod_generator: ^2.6.3
+  build_runner: ^2.4.14
+  json_serializable: ^6.9.4
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/
+    - assets/icons/
+    - assets/animations/
