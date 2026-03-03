@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/shared_widgets.dart';
+import '../../data/repositories/auth_repository.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen>
+class _LoginScreenState extends ConsumerState<LoginScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _animController;
   late Animation<double> _fadeIn;
@@ -230,7 +232,7 @@ class _LoginScreenState extends State<LoginScreen>
           text: 'Send OTP',
           icon: Icons.sms_outlined,
           isLoading: _isLoading,
-          onPressed: () {
+          onPressed: () async {
             if (_phoneController.text.length != 10) {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
@@ -240,15 +242,56 @@ class _LoginScreenState extends State<LoginScreen>
               );
               return;
             }
+            
             setState(() {
               _isLoading = true;
             });
-            Future.delayed(const Duration(seconds: 1), () {
-              setState(() {
-                _isLoading = false;
-                _otpSent = true;
-              });
-            });
+            
+            final authRepo = ref.read(authRepositoryProvider);
+            final fullPhoneNumber = '+91${_phoneController.text}';
+            
+            try {
+              await authRepo.sendOTP(
+                phoneNumber: fullPhoneNumber,
+                onCodeSent: () {
+                  if (mounted) {
+                    setState(() {
+                      _isLoading = false;
+                      _otpSent = true;
+                    });
+                  }
+                },
+                onAutoVerify: (String code) async {
+                  // In case of automatic SMS retrieval on Android
+                  if (mounted) {
+                    // Populate the UI
+                    for (int i = 0; i < code.length && i < _otpControllers.length; i++) {
+                      _otpControllers[i].text = code[i];
+                    }
+                    _verifyOtp(code);
+                  }
+                },
+                onError: (String errorMessage) {
+                  if (mounted) {
+                    setState(() {
+                      _isLoading = false;
+                    });
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(errorMessage), backgroundColor: Colors.redAccent),
+                    );
+                  }
+                },
+              );
+            } catch (e) {
+              if (mounted) {
+                setState(() {
+                  _isLoading = false;
+                });
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text('Error: $e'), backgroundColor: Colors.redAccent),
+                );
+              }
+            }
           },
         ),
       ],
@@ -313,10 +356,45 @@ class _LoginScreenState extends State<LoginScreen>
           text: 'Verify & Continue',
           icon: Icons.check_circle_outline,
           isLoading: _isLoading,
-          onPressed: () => _skipToOnboarding(),
+          onPressed: () {
+            final otp = _otpControllers.map((c) => c.text).join();
+            if (otp.length != 6) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Please enter a valid 6-digit OTP'), backgroundColor: Colors.redAccent),
+              );
+              return;
+            }
+            _verifyOtp(otp);
+          },
         ),
       ],
     );
+  }
+
+  Future<void> _verifyOtp(String otp) async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final authRepo = ref.read(authRepositoryProvider);
+      await authRepo.verifyOTP(otp);
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        _skipToOnboarding();
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to verify OTP: $e'), backgroundColor: Colors.redAccent),
+        );
+      }
+    }
   }
 
   void _skipToOnboarding() {
