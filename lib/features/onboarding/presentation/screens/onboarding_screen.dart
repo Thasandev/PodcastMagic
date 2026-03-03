@@ -196,24 +196,25 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Widget _buildLanguagePage() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: 20),
-          Text(
-            'Choose your languages 🌏',
-            style: Theme.of(context).textTheme.headlineLarge?.copyWith(color: Colors.white),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Select the languages you\'d like to listen in',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white60),
-          ),
-          const SizedBox(height: 28),
-          Expanded(
-            child: GridView.builder(
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Choose your languages 🌏',
+              style: Theme.of(context).textTheme.headlineLarge?.copyWith(color: Colors.white),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Select the languages you\'d like to listen in',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white60),
+            ),
+            const SizedBox(height: 28),
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
                 childAspectRatio: 2.8,
@@ -273,31 +274,32 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 );
               },
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildInterestsPage() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const SizedBox(height: 20),
-          Text(
-            'What interests you? 🎯',
-            style: Theme.of(context).textTheme.headlineLarge?.copyWith(color: Colors.white),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Pick at least 3 topics (${_selectedInterests.length} selected)',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white60),
-          ),
-          const SizedBox(height: 24),
-          Expanded(
-            child: GridView.builder(
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'What interests you? 🎯',
+              style: Theme.of(context).textTheme.headlineLarge?.copyWith(color: Colors.white),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Pick at least 3 topics (${_selectedInterests.length} selected)',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white60),
+            ),
+            const SizedBox(height: 24),
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
               gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
                 childAspectRatio: 2.2,
@@ -357,8 +359,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 );
               },
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
