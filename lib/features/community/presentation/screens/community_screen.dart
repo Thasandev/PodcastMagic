@@ -2,12 +2,16 @@ import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/data/sample_data.dart';
 import '../../../../core/widgets/shared_widgets.dart';
+import '../../../../services/supabase_service.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class CommunityScreen extends StatelessWidget {
+class CommunityScreen extends ConsumerWidget {
   const CommunityScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final reflectionsAsync = ref.watch(reflectionsProvider(null));
+    final trendingAsync = ref.watch(trendingEpisodesProvider);
     return Scaffold(
       appBar: AppBar(
         title: const Text('🌍 Sabka Kaan'),
@@ -105,7 +109,9 @@ class CommunityScreen extends StatelessWidget {
           // Popular saves
           Text('🔥 Most Saved Moments', style: Theme.of(context).textTheme.headlineSmall),
           const SizedBox(height: 12),
-          ...SampleData.sampleEpisodes.take(3).map((ep) => Padding(
+          trendingAsync.when(
+            data: (episodes) => Column(
+              children: episodes.take(3).map((ep) => Padding(
                 padding: const EdgeInsets.only(bottom: 8),
                 child: KCard(
                   padding: const EdgeInsets.all(14),
@@ -148,7 +154,11 @@ class CommunityScreen extends StatelessWidget {
                     ],
                   ),
                 ),
-              )),
+              )).toList(),
+            ),
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (err, stack) => Center(child: Text('Error: $err')),
+          ),
 
           const SizedBox(height: 20),
 

@@ -1,5 +1,26 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/models/models.dart';
+
+final supabaseServiceProvider = Provider<SupabaseService>((ref) {
+  return SupabaseService();
+});
+
+final episodeFeedProvider = FutureProvider.family<List<Episode>, String?>((ref, category) async {
+  return ref.watch(supabaseServiceProvider).getFeed(category: category);
+});
+
+final trendingEpisodesProvider = FutureProvider<List<Episode>>((ref) async {
+  return ref.watch(supabaseServiceProvider).getTrending();
+});
+
+final savedClipsProvider = FutureProvider<List<SavedClip>>((ref) async {
+  return ref.watch(supabaseServiceProvider).getSavedClips();
+});
+
+final reflectionsProvider = FutureProvider.family<List<Reflection>, String?>((ref, city) async {
+  return ref.watch(supabaseServiceProvider).getReflections(city: city);
+});
 
 /// Supabase service for all backend operations
 class SupabaseService {

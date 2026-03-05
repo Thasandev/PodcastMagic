@@ -3,15 +3,17 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/data/sample_data.dart';
 import '../../../../core/widgets/shared_widgets.dart';
+import '../../../../services/supabase_service.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class LibraryScreen extends StatefulWidget {
+class LibraryScreen extends ConsumerStatefulWidget {
   const LibraryScreen({super.key});
 
   @override
-  State<LibraryScreen> createState() => _LibraryScreenState();
+  ConsumerState<LibraryScreen> createState() => _LibraryScreenState();
 }
 
-class _LibraryScreenState extends State<LibraryScreen> with SingleTickerProviderStateMixin {
+class _LibraryScreenState extends ConsumerState<LibraryScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   @override
@@ -69,88 +71,95 @@ class _LibraryScreenState extends State<LibraryScreen> with SingleTickerProvider
   }
 
   Widget _buildSavesTab() {
-    final clips = SampleData.sampleClips;
-    if (clips.isEmpty) {
-      return _buildEmptyState(
-        icon: Icons.bookmark_outline,
-        title: 'No saved clips yet',
-        subtitle: 'Triple-tap your headphones or say "Suno" while listening to save moments',
-      );
-    }
-    return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
-      itemCount: clips.length,
-      itemBuilder: (context, index) {
-        final clip = clips[index];
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 8),
-          child: KCard(
-            onTap: () => context.push('/player'),
-            padding: const EdgeInsets.all(14),
-            child: Row(
-              children: [
-                Container(
-                  width: 56,
-                  height: 56,
-                  decoration: BoxDecoration(
-                    gradient: AppColors.accentGradient,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(Icons.bookmark, color: Colors.white, size: 24),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        clip.aiTitle ?? 'Saved clip',
-                        style: Theme.of(context).textTheme.titleSmall,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
+    final savesAsync = ref.watch(savedClipsProvider);
+    
+    return savesAsync.when(
+      data: (clips) {
+        if (clips.isEmpty) {
+          return _buildEmptyState(
+            icon: Icons.bookmark_outline,
+            title: 'No saved clips yet',
+            subtitle: 'Triple-tap your headphones or say "Suno" while listening to save moments',
+          );
+        }
+        return ListView.builder(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+          itemCount: clips.length,
+          itemBuilder: (context, index) {
+            final clip = clips[index];
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: KCard(
+                onTap: () => context.push('/player'),
+                padding: const EdgeInsets.all(14),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 56,
+                      height: 56,
+                      decoration: BoxDecoration(
+                        gradient: AppColors.accentGradient,
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        clip.podcastName,
-                        style: Theme.of(context).textTheme.bodySmall,
-                      ),
-                      const SizedBox(height: 4),
-                      if (clip.aiSummary != null)
-                        Text(
-                          clip.aiSummary!,
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(fontStyle: FontStyle.italic),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      const SizedBox(height: 4),
-                      Row(
+                      child: const Icon(Icons.bookmark, color: Colors.white, size: 24),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Icon(Icons.access_time, size: 12, color: AppColors.grey500),
-                          const SizedBox(width: 3),
-                          Text('${clip.durationSeconds}s', style: Theme.of(context).textTheme.labelSmall),
-                          const SizedBox(width: 12),
-                          Icon(Icons.schedule, size: 12, color: AppColors.grey500),
-                          const SizedBox(width: 3),
-                          Text(_timeAgo(clip.savedAt), style: Theme.of(context).textTheme.labelSmall),
+                          Text(
+                            clip.aiTitle ?? 'Saved clip',
+                            style: Theme.of(context).textTheme.titleSmall,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            clip.podcastName,
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                          const SizedBox(height: 4),
+                          if (clip.aiSummary != null)
+                            Text(
+                              clip.aiSummary!,
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(fontStyle: FontStyle.italic),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: [
+                              Icon(Icons.access_time, size: 12, color: AppColors.grey500),
+                              const SizedBox(width: 3),
+                              Text('${clip.durationSeconds}s', style: Theme.of(context).textTheme.labelSmall),
+                              const SizedBox(width: 12),
+                              Icon(Icons.schedule, size: 12, color: AppColors.grey500),
+                              const SizedBox(width: 3),
+                              Text(_timeAgo(clip.savedAt), style: Theme.of(context).textTheme.labelSmall),
+                            ],
+                          ),
                         ],
                       ),
-                    ],
-                  ),
-                ),
-                PopupMenuButton<String>(
-                  icon: const Icon(Icons.more_vert, size: 20),
-                  itemBuilder: (context) => [
-                    const PopupMenuItem(value: 'remix', child: Text('🎤 Remix')),
-                    const PopupMenuItem(value: 'share', child: Text('📤 Share')),
-                    const PopupMenuItem(value: 'delete', child: Text('🗑️ Delete')),
+                    ),
+                    PopupMenuButton<String>(
+                      icon: const Icon(Icons.more_vert, size: 20),
+                      itemBuilder: (context) => [
+                        const PopupMenuItem(value: 'remix', child: Text('🎤 Remix')),
+                        const PopupMenuItem(value: 'share', child: Text('📤 Share')),
+                        const PopupMenuItem(value: 'delete', child: Text('🗑️ Delete')),
+                      ],
+                      onSelected: (val) {},
+                    ),
                   ],
-                  onSelected: (val) {},
                 ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         );
       },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (err, stack) => Center(child: Text('Error: $err')),
     );
   }
 

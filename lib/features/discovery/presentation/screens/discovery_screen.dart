@@ -4,15 +4,17 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/data/sample_data.dart';
 import '../../../../core/widgets/shared_widgets.dart';
 import '../../../../core/constants/app_constants.dart';
+import '../../../../services/supabase_service.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class DiscoveryScreen extends StatefulWidget {
+class DiscoveryScreen extends ConsumerStatefulWidget {
   const DiscoveryScreen({super.key});
 
   @override
-  State<DiscoveryScreen> createState() => _DiscoveryScreenState();
+  ConsumerState<DiscoveryScreen> createState() => _DiscoveryScreenState();
 }
 
-class _DiscoveryScreenState extends State<DiscoveryScreen> with SingleTickerProviderStateMixin {
+class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   @override
@@ -105,91 +107,100 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> with SingleTickerProv
   }
 
   Widget _buildForYouTab(BuildContext context) {
-    final episodes = SampleData.sampleEpisodes;
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
-      children: [
-        // AI recommendation banner
-        Container(
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            gradient: AppColors.accentGradient,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Row(
-            children: [
-              const Icon(Icons.auto_awesome, color: Colors.white, size: 32),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'AI-Curated For You',
-                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 16),
-                    ),
-                    Text(
-                      'Based on your interests: Tech, Cricket, Business',
-                      style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 12),
-                    ),
-                  ],
+    final episodesAsync = ref.watch(episodeFeedProvider(null));
+    
+    return episodesAsync.when(
+      data: (episodes) => ListView(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+        children: [
+          // AI recommendation banner
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              gradient: AppColors.accentGradient,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.auto_awesome, color: Colors.white, size: 32),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'AI-Curated For You',
+                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 16),
+                      ),
+                      Text(
+                        'Based on your interests: Tech, Cricket, Business',
+                        style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 12),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-        const SizedBox(height: 16),
-        ...episodes.map((ep) => Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: KEpisodeCard(
-                title: ep.title,
-                podcastName: ep.podcastName,
-                duration: ep.formattedDuration,
-                category: ep.category,
-                saveCount: ep.saveCount,
-                onTap: () => context.push('/player'),
-                onPlay: () => context.push('/player'),
-              ),
-            )),
-      ],
+          const SizedBox(height: 16),
+          ...episodes.map((ep) => Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: KEpisodeCard(
+                  title: ep.title,
+                  podcastName: ep.podcastName,
+                  duration: ep.formattedDuration,
+                  category: ep.category,
+                  saveCount: ep.saveCount,
+                  onTap: () => context.push('/player'),
+                  onPlay: () => context.push('/player'),
+                ),
+              )),
+        ],
+      ),
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (err, stack) => Center(child: Text('Error: $err')),
     );
   }
 
   Widget _buildTrendingTab(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
-      children: [
-        // Trending topics
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: SampleData.trendingTopics.map((topic) {
-            return ActionChip(
-              label: Text(topic),
-              onPressed: () {},
-              backgroundColor: AppColors.primary.withValues(alpha: 0.1),
-              labelStyle: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600),
-            );
-          }).toList(),
-        ),
-        const SizedBox(height: 20),
-        Text('Most Saved This Week', style: Theme.of(context).textTheme.headlineSmall),
-        const SizedBox(height: 12),
-        ...(SampleData.sampleEpisodes.toList()
-            ..sort((a, b) => b.saveCount.compareTo(a.saveCount)))
-            .take(5).map((ep) => Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: KEpisodeCard(
-                title: ep.title,
-                podcastName: ep.podcastName,
-                duration: ep.formattedDuration,
-                category: ep.category,
-                saveCount: ep.saveCount,
-                onTap: () => context.push('/player'),
-                onPlay: () => context.push('/player'),
-              ),
-            )),
-      ],
+    final trendingAsync = ref.watch(trendingEpisodesProvider);
+
+    return trendingAsync.when(
+      data: (episodes) => ListView(
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+        children: [
+          // Trending topics
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: SampleData.trendingTopics.map((topic) {
+              return ActionChip(
+                label: Text(topic),
+                onPressed: () {},
+                backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+                labelStyle: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600),
+              );
+            }).toList(),
+          ),
+          const SizedBox(height: 20),
+          Text('Most Saved This Week', style: Theme.of(context).textTheme.headlineSmall),
+          const SizedBox(height: 12),
+          ...episodes.map((ep) => Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: KEpisodeCard(
+                  title: ep.title,
+                  podcastName: ep.podcastName,
+                  duration: ep.formattedDuration,
+                  category: ep.category,
+                  saveCount: ep.saveCount,
+                  onTap: () => context.push('/player'),
+                  onPlay: () => context.push('/player'),
+                ),
+              )),
+        ],
+      ),
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (err, stack) => Center(child: Text('Error: $err')),
     );
   }
 

@@ -3,14 +3,16 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/shared_widgets.dart';
 import '../../../../core/data/sample_data.dart';
+import '../../../../services/supabase_service.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final user = SampleData.sampleUser;
-    final episodes = SampleData.sampleEpisodes;
+    final episodesAsync = ref.watch(episodeFeedProvider(null));
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
@@ -267,7 +269,6 @@ class HomeScreen extends StatelessWidget {
             ),
           ),
 
-          // Today's Mix
           SliverToBoxAdapter(
             child: KSectionHeader(
               title: 'Today\'s Mix 🎧',
@@ -275,24 +276,32 @@ class HomeScreen extends StatelessWidget {
               onAction: () {},
             ),
           ),
-          SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (context, index) {
-                final ep = episodes[index];
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                  child: KEpisodeCard(
-                    title: ep.title,
-                    podcastName: ep.podcastName,
-                    duration: ep.formattedDuration,
-                    category: ep.category,
-                    saveCount: ep.saveCount,
-                    onTap: () => context.push('/player'),
-                    onPlay: () => context.push('/player'),
-                  ),
-                );
-              },
-              childCount: episodes.length,
+          episodesAsync.when(
+            data: (episodes) => SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (context, index) {
+                  final ep = episodes[index];
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                    child: KEpisodeCard(
+                      title: ep.title,
+                      podcastName: ep.podcastName,
+                      duration: ep.formattedDuration,
+                      category: ep.category,
+                      saveCount: ep.saveCount,
+                      onTap: () => context.push('/player'),
+                      onPlay: () => context.push('/player'),
+                    ),
+                  );
+                },
+                childCount: episodes.length,
+              ),
+            ),
+            loading: () => const SliverToBoxAdapter(
+              child: Center(child: CircularProgressIndicator()),
+            ),
+            error: (err, stack) => SliverToBoxAdapter(
+              child: Center(child: Text('Error loading feed: $err')),
             ),
           ),
 
