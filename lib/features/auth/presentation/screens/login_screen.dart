@@ -21,6 +21,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
   final _phoneController = TextEditingController();
   bool _otpSent = false;
   final _otpControllers = List.generate(6, (_) => TextEditingController());
+  final _otpObscureStates = List.generate(6, (_) => false);
   bool _isLoading = false;
 
   @override
@@ -322,21 +323,63 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.white.withValues(alpha: 0.15)),
+                border: Border.all(
+                  color: _otpControllers[i].text.isNotEmpty 
+                      ? AppColors.primary.withValues(alpha: 0.5) 
+                      : Colors.white.withValues(alpha: 0.15),
+                  width: 1.5,
+                ),
+                boxShadow: _otpControllers[i].text.isNotEmpty ? [
+                  BoxShadow(
+                    color: AppColors.primary.withValues(alpha: 0.1),
+                    blurRadius: 8,
+                    spreadRadius: 1,
+                  )
+                ] : null,
               ),
               child: TextField(
                 controller: _otpControllers[i],
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w700),
+                obscureText: _otpObscureStates[i],
+                obscuringCharacter: '●',
+                style: const TextStyle(
+                  color: Colors.white, 
+                  fontSize: 22, 
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0,
+                ),
                 keyboardType: TextInputType.number,
                 maxLength: 1,
                 decoration: const InputDecoration(
                   border: InputBorder.none,
                   counterText: '',
+                  contentPadding: EdgeInsets.zero,
                 ),
                 onChanged: (val) {
-                  if (val.isNotEmpty && i < 5) {
-                    FocusScope.of(context).nextFocus();
+                  if (val.isNotEmpty) {
+                    setState(() {
+                      _otpObscureStates[i] = false;
+                    });
+                    
+                    // Delay obscuring for a brief "show" effect
+                    Future.delayed(const Duration(milliseconds: 600), () {
+                      if (mounted && _otpControllers[i].text.isNotEmpty) {
+                        setState(() {
+                          _otpObscureStates[i] = true;
+                        });
+                      }
+                    });
+
+                    if (i < 5) {
+                      FocusScope.of(context).nextFocus();
+                    }
+                  } else {
+                    setState(() {
+                      _otpObscureStates[i] = false;
+                    });
+                    if (i > 0) {
+                      FocusScope.of(context).previousFocus();
+                    }
                   }
                 },
               ),
