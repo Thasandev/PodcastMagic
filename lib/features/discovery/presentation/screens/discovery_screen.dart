@@ -6,6 +6,7 @@ import '../../../../core/widgets/shared_widgets.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../services/supabase_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:youtube_explode_dart/youtube_explode_dart.dart';
 
 class DiscoveryScreen extends ConsumerStatefulWidget {
   const DiscoveryScreen({super.key});
@@ -16,6 +17,9 @@ class DiscoveryScreen extends ConsumerStatefulWidget {
 
 class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  final TextEditingController _youtubeController = TextEditingController();
+  bool _isImporting = false;
+  String? _importStatus;
 
   @override
   void initState() {
@@ -26,7 +30,74 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen> with SingleTi
   @override
   void dispose() {
     _tabController.dispose();
+    _youtubeController.dispose();
     super.dispose();
+  }
+
+  Future<void> _handleYouTubeImport() async {
+    final url = _youtubeController.text.trim();
+    if (url.isEmpty) return;
+
+    setState(() {
+      _isImporting = true;
+      _importStatus = 'Connecting to YouTube...';
+    });
+
+    final yt = YoutubeExplode();
+    try {
+      final video = await yt.videos.get(url);
+      
+      setState(() {
+        _importStatus = 'Extracting audio stream...';
+      });
+
+      final manifest = await yt.videos.streamsClient.getManifest(video.id);
+      final audioStream = manifest.audioOnly.withHighestBitrate();
+      
+      if (audioStream == null) {
+        throw Exception('No audio stream found for this video');
+      }
+
+      setState(() {
+        _importStatus = 'Saving to Kaan library...';
+      });
+
+      await ref.read(supabaseServiceProvider).importYouTubeEpisode(
+        title: video.title,
+        author: video.author,
+        audioUrl: audioStream.url.toString(),
+        imageUrl: video.thumbnails.highResUrl,
+        durationSeconds: video.duration?.inSeconds ?? 0,
+        description: video.description,
+      );
+
+      _youtubeController.clear();
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('✅ Successfully imported to your library!'),
+            backgroundColor: AppColors.success,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('❌ Error: ${e.toString()}'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    } finally {
+      yt.close();
+      if (mounted) {
+        setState(() {
+          _isImporting = false;
+          _importStatus = null;
+        });
+      }
+    }
   }
 
   @override
@@ -284,19 +355,37 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen> with SingleTi
                 borderRadius: BorderRadius.circular(14),
               ),
               child: TextField(
+                controller: _youtubeController,
+                enabled: !_isImporting,
                 decoration: InputDecoration(
                   hintText: 'Paste YouTube URL here...',
                   prefixIcon: const Icon(Icons.link, color: AppColors.grey500),
-                  suffixIcon: IconButton(
-                    icon: const Icon(Icons.download, color: AppColors.primary),
-                    onPressed: () {},
-                  ),
+                  suffixIcon: _isImporting
+                      ? const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: Padding(
+                            padding: EdgeInsets.all(12),
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        )
+                      : IconButton(
+                          icon: const Icon(Icons.download, color: AppColors.primary),
+                          onPressed: _handleYouTubeImport,
+                        ),
                   border: InputBorder.none,
                   enabledBorder: InputBorder.none,
                   focusedBorder: InputBorder.none,
                 ),
               ),
             ),
+            if (_importStatus != null) ...[
+              const SizedBox(height: 16),
+              Text(
+                _importStatus!,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.primary),
+              ),
+            ],
           ],
         ),
       ),

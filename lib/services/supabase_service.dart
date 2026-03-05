@@ -112,14 +112,50 @@ class SupabaseService {
     return data.map<Episode>((e) => Episode.fromJson(e)).toList();
   }
 
-  Future<List<Episode>> searchEpisodes(String query) async {
-    final data = await _client
-        .from('episodes')
-        .select()
-        .or('title.ilike.%$query%,description.ilike.%$query%')
-        .order('published_at', ascending: false)
-        .limit(20);
     return data.map<Episode>((e) => Episode.fromJson(e)).toList();
+  }
+
+  Future<Episode> importYouTubeEpisode({
+    required String title,
+    required String author,
+    required String audioUrl,
+    required String imageUrl,
+    required int durationSeconds,
+    String? description,
+  }) async {
+    // 1. Find or create a 'YouTube Import' podcast
+    final podcastData = await _client
+        .from('podcasts')
+        .select()
+        .eq('title', 'YouTube Imports')
+        .maybeSingle();
+
+    String podcastId;
+    if (podcastData == null) {
+      final newPodcast = await _client.from('podcasts').insert({
+        'title': 'YouTube Imports',
+        'author': 'YouTube',
+        'description': 'Podcasts imported from YouTube videos',
+        'image_url': 'https://www.youtube.com/s/desktop/281f33f6/img/favicon_144x144.png',
+      }).select().single();
+      podcastId = newPodcast['id'];
+    } else {
+      podcastId = podcastData['id'];
+    }
+
+    // 2. Insert the episode
+    final episodeData = await _client.from('episodes').insert({
+      'podcast_id': podcastId,
+      'title': title,
+      'description': description ?? 'Imported from YouTube',
+      'audio_url': audioUrl,
+      'image_url': imageUrl,
+      'duration_seconds': durationSeconds,
+      'category': 'YouTube',
+      'published_at': DateTime.now().toIso8601String(),
+    }).select().single();
+
+    return Episode.fromJson(episodeData);
   }
 
   // ============ SAVED CLIPS ============
