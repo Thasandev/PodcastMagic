@@ -34,7 +34,7 @@ class _DangalScreenState extends State<DangalScreen> with SingleTickerProviderSt
           SliverAppBar(
             floating: true,
             pinned: true,
-            expandedHeight: 200,
+            expandedHeight: 240,
             backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
             flexibleSpace: FlexibleSpaceBar(
               background: Container(
