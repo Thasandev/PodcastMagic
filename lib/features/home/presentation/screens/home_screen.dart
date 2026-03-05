@@ -134,7 +134,7 @@ class HomeScreen extends ConsumerWidget {
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
-                                      '${user.commuteDurationMin} min mix ready • ${episodes.length} clips',
+                                      '${user.commuteDurationMin} min mix ready • ${episodesAsync.value?.length ?? 0} clips',
                                       style: TextStyle(
                                         color: Colors.white.withValues(alpha: 0.8),
                                         fontSize: 13,
