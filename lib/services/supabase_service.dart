@@ -112,6 +112,13 @@ class SupabaseService {
     return data.map<Episode>((e) => Episode.fromJson(e)).toList();
   }
 
+  Future<List<Episode>> searchEpisodes(String query) async {
+    final data = await _client
+        .from('episodes')
+        .select()
+        .or('title.ilike.%$query%,description.ilike.%$query%')
+        .order('published_at', ascending: false)
+        .limit(20);
     return data.map<Episode>((e) => Episode.fromJson(e)).toList();
   }
 
