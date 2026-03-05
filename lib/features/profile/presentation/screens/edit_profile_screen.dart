@@ -65,8 +65,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             KGradientButton(
               text: 'Save Changes',
               onPressed: () {
-                // Update local sample data as a mock
-                SampleData.sampleUser.name = _nameController.text;
+                // Mock save — UserProfile is immutable; real save would go via a provider
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Profile updated successfully!')),
