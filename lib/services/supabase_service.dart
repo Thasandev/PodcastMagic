@@ -10,6 +10,10 @@ final episodeFeedProvider = FutureProvider.family<List<Episode>, String?>((ref, 
   return ref.watch(supabaseServiceProvider).getFeed(category: category);
 });
 
+final userProfileProvider = FutureProvider<UserProfile?>((ref) async {
+  return ref.watch(supabaseServiceProvider).getProfile();
+});
+
 final trendingEpisodesProvider = FutureProvider<List<Episode>>((ref) async {
   return ref.watch(supabaseServiceProvider).getTrending();
 });

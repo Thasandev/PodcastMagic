@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/shared_widgets.dart';
+import '../../../../services/supabase_service.dart';
 import '../../data/repositories/auth_repository.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
@@ -422,11 +423,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     try {
       final authRepo = ref.read(authRepositoryProvider);
       await authRepo.verifyOTP(otp);
+      
+      // Check if onboarding is completed
+      final profile = await ref.read(supabaseServiceProvider).getProfile();
+      final hasCompletedOnboarding = profile?.onboardingCompleted ?? false;
+
       if (mounted) {
         setState(() {
           _isLoading = false;
         });
-        _skipToOnboarding();
+        if (hasCompletedOnboarding) {
+          context.go('/');
+        } else {
+          _skipToOnboarding();
+        }
       }
     } catch (e) {
       if (mounted) {

@@ -3,15 +3,17 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/widgets/shared_widgets.dart';
+import '../../../../services/supabase_service.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class OnboardingScreen extends StatefulWidget {
+class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key});
 
   @override
-  State<OnboardingScreen> createState() => _OnboardingScreenState();
+  ConsumerState<OnboardingScreen> createState() => _OnboardingScreenState();
 }
 
-class _OnboardingScreenState extends State<OnboardingScreen> {
+class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
   static const _totalPages = 5;
@@ -21,6 +23,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final Set<String> _selectedInterests = {};
   double _commuteDuration = 45;
   String _selectedVoice = 'Confident Female';
+  bool _isSaving = false;
 
   @override
   void dispose() {
@@ -28,14 +31,37 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     super.dispose();
   }
 
-  void _nextPage() {
+  Future<void> _nextPage() async {
     if (_currentPage < _totalPages - 1) {
+      if (_currentPage == 2 && _selectedInterests.length < 3) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please select at least 3 interests')),
+        );
+        return;
+      }
+
       _pageController.nextPage(
         duration: const Duration(milliseconds: 400),
         curve: Curves.easeInOutCubic,
       );
     } else {
-      context.go('/');
+      setState(() => _isSaving = true);
+      try {
+        await ref.read(supabaseServiceProvider).completeOnboarding(
+          languages: _selectedLanguages.toList(),
+          interests: _selectedInterests.toList(),
+          commuteDuration: _commuteDuration.round(),
+          preferredVoice: _selectedVoice,
+        );
+        if (mounted) context.go('/');
+      } catch (e) {
+        if (mounted) {
+          setState(() => _isSaving = false);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to save preferences: $e'), backgroundColor: AppColors.error),
+          );
+        }
+      }
     }
   }
 
@@ -125,6 +151,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 padding: const EdgeInsets.all(24),
                 child: KGradientButton(
                   text: _currentPage == _totalPages - 1 ? 'Start Listening 🎧' : 'Continue',
+                  isLoading: _isSaving,
                   onPressed: _nextPage,
                 ),
               ),

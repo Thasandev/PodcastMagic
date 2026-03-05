@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/pickers.dart';
+import '../../../../services/supabase_service.dart';
 import '../../../auth/data/repositories/auth_repository.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -13,6 +14,7 @@ class SettingsScreen extends ConsumerStatefulWidget {
 }
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
+  // Playback & App preferences
   bool _darkMode = true;
   bool _offlineMode = false;
   bool _notificationsEnabled = true;
@@ -21,16 +23,21 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   double _playbackSpeed = 1.0;
   String _audioQuality = 'High';
 
-  // Mock states for pickers
-  Set<String> _selectedLanguages = {'en', 'hi'};
-  Set<String> _selectedInterests = {'tech', 'business'};
-  double _commuteDuration = 45;
-
   @override
   Widget build(BuildContext context) {
+    final profileAsync = ref.watch(userProfileProvider);
+
     return Scaffold(
       appBar: AppBar(title: const Text('Settings')),
-      body: ListView(
+      body: profileAsync.when(
+        data: (profile) {
+          if (profile == null) return const Center(child: Text('No profile found.'));
+          
+          final selectedLanguages = profile.languages.toSet();
+          final selectedInterests = profile.interests.toSet();
+          final commuteDuration = profile.commuteDurationMin.toDouble();
+
+          return ListView(
         children: [
           // Account
           const _SectionHeader(title: 'Account'),
@@ -42,20 +49,20 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           _SettingsTile(
             icon: Icons.language, 
             title: 'Language Preferences', 
-            subtitle: _selectedLanguages.join(', ').toUpperCase(), 
-            onTap: () => _showLanguagePicker(),
+            subtitle: selectedLanguages.join(', ').toUpperCase(), 
+            onTap: () => _showLanguagePicker(selectedLanguages),
           ),
           _SettingsTile(
             icon: Icons.interests, 
             title: 'Interest Topics', 
-            subtitle: '${_selectedInterests.length} topics selected', 
-            onTap: () => _showInterestPicker(),
+            subtitle: '${selectedInterests.length} topics selected', 
+            onTap: () => _showInterestPicker(selectedInterests),
           ),
           _SettingsTile(
             icon: Icons.commute, 
             title: 'Commute Duration', 
-            subtitle: '${_commuteDuration.round()} minutes', 
-            onTap: () => _showCommutePicker(),
+            subtitle: '${commuteDuration.round()} minutes', 
+            onTap: () => _showCommutePicker(commuteDuration),
           ),
 
           // Playback
@@ -149,36 +156,49 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
           const SizedBox(height: 140),
         ],
+      );
+      },
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (e, st) => Center(child: Text('Error loading profile: $e')),
       ),
     );
   }
 
-  void _showLanguagePicker() {
+  void _showLanguagePicker(Set<String> initialLanguages) {
     showDialog(
       context: context,
       builder: (context) => LanguagePickerDialog(
-        initialLanguages: _selectedLanguages,
-        onSaved: (langs) => setState(() => _selectedLanguages = langs),
+        initialLanguages: initialLanguages,
+        onSaved: (langs) async {
+          await ref.read(supabaseServiceProvider).updateProfile({'languages': langs.toList()});
+          ref.invalidate(userProfileProvider);
+        },
       ),
     );
   }
 
-  void _showInterestPicker() {
+  void _showInterestPicker(Set<String> initialInterests) {
     showDialog(
       context: context,
       builder: (context) => InterestPickerDialog(
-        initialInterests: _selectedInterests,
-        onSaved: (interests) => setState(() => _selectedInterests = interests),
+        initialInterests: initialInterests,
+        onSaved: (interests) async {
+          await ref.read(supabaseServiceProvider).updateProfile({'interests': interests.toList()});
+          ref.invalidate(userProfileProvider);
+        },
       ),
     );
   }
 
-  void _showCommutePicker() {
+  void _showCommutePicker(double initialDuration) {
     showDialog(
       context: context,
       builder: (context) => CommuteDurationDialog(
-        initialDuration: _commuteDuration,
-        onSaved: (dur) => setState(() => _commuteDuration = dur),
+        initialDuration: initialDuration,
+        onSaved: (dur) async {
+          await ref.read(supabaseServiceProvider).updateProfile({'commute_duration_min': dur.round()});
+          ref.invalidate(userProfileProvider);
+        },
       ),
     );
   }
