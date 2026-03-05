@@ -33,7 +33,7 @@ class OpenAIService {
 
     try {
       final response = await _dio.post('/chat/completions', data: {
-        'model': 'gpt-4o',
+        'model': 'gpt-4o-mini',
         'messages': [
           {
             'role': 'system',
@@ -70,7 +70,7 @@ Respond ONLY with valid JSON.'''
 
     try {
       final response = await _dio.post('/chat/completions', data: {
-        'model': 'gpt-4o',
+        'model': 'gpt-4o-mini',
         'messages': [
           {
             'role': 'system',
@@ -100,7 +100,7 @@ Keep answers under 200 words.'''
 
     try {
       final response = await _dio.post('/chat/completions', data: {
-        'model': 'gpt-4o',
+        'model': 'gpt-4o-mini',
         'messages': [
           {
             'role': 'system',

@@ -9,6 +9,10 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  
+  // Initialize OpenAI Service
+  OpenAIService().initialize(AppConstants.openaiApiKey);
+
   runApp(
     const ProviderScope(
       child: KaanApp(),
