@@ -59,20 +59,41 @@ class SupabaseService {
   // ============ PROFILES ============
 
   Future<UserProfile?> getProfile() async {
-    if (currentUser == null) return null;
-    final data = await _client
-        .from('profiles')
-        .select()
-        .eq('id', currentUser!.id)
-        .single();
-    return UserProfile.fromJson(data);
+    if (currentUser == null) {
+      // Return a temporary mock profile if Supabase Auth isn't active
+      return UserProfile(
+        id: 'temp-local-id',
+        name: 'Guest User',
+        languages: const ['en'],
+        interests: const ['tech'],
+        commuteDurationMin: 45,
+        onboardingCompleted: true,
+        createdAt: DateTime.now(),
+      );
+    }
+    try {
+      final data = await _client
+          .from('profiles')
+          .select()
+          .eq('id', currentUser!.id)
+          .single();
+      return UserProfile.fromJson(data);
+    } catch (e) {
+      print('Failed to fetch profile: $e');
+      return null;
+    }
   }
 
   Future<void> updateProfile(Map<String, dynamic> updates) async {
-    await _client
-        .from('profiles')
-        .update(updates)
-        .eq('id', currentUser!.id);
+    if (currentUser == null) return; // Prevent null crash
+    try {
+      await _client
+          .from('profiles')
+          .update(updates)
+          .eq('id', currentUser!.id);
+    } catch (e) {
+      print('Failed to update profile: $e');
+    }
   }
 
   Future<void> completeOnboarding({
@@ -81,6 +102,7 @@ class SupabaseService {
     required int commuteDuration,
     required String preferredVoice,
   }) async {
+    if (currentUser == null) return; // Prevent null crash
     await updateProfile({
       'languages': languages,
       'interests': interests,
