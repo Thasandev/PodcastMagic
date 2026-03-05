@@ -75,17 +75,26 @@ class _DangalScreenState extends State<DangalScreen> with SingleTickerProviderSt
                 ),
               ),
             ),
-            bottom: TabBar(
-              controller: _tabController,
-              indicatorColor: AppColors.primary,
-              labelColor: isDark ? Colors.white : AppColors.secondary,
-              unselectedLabelColor: AppColors.grey500,
-              tabs: const [
-                Tab(text: '🏙️ City'),
-                Tab(text: '🏢 Office'),
-                Tab(text: '👨‍👩‍👦 Family'),
-                Tab(text: '🌍 Overall'),
-              ],
+            bottom: PreferredSize(
+              preferredSize: const Size.fromHeight(48),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 600),
+                  child: TabBar(
+                    controller: _tabController,
+                    indicatorColor: AppColors.primary,
+                    labelColor: isDark ? Colors.white : AppColors.secondary,
+                    unselectedLabelColor: AppColors.grey500,
+                    indicatorWeight: 3,
+                    tabs: const [
+                      Tab(text: '🏙️ City'),
+                      Tab(text: '🏢 Office'),
+                      Tab(text: '👨‍👩‍👦 Family'),
+                      Tab(text: '🌍 Overall'),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ),
         ],
@@ -107,77 +116,86 @@ class _DangalScreenState extends State<DangalScreen> with SingleTickerProviderSt
     return ListView(
       padding: const EdgeInsets.all(16),
       children: [
-        // Top 3 podium
-        if (entries.length >= 3)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 24),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.end,
+        Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 800),
+            child: Column(
               children: [
-                // 2nd place
-                Expanded(child: _PodiumCard(entry: entries[1], medal: '🥈', height: 120)),
-                const SizedBox(width: 8),
-                // 1st place
-                Expanded(child: _PodiumCard(entry: entries[0], medal: '🥇', height: 150)),
-                const SizedBox(width: 8),
-                // 3rd place
-                Expanded(child: _PodiumCard(entry: entries[2], medal: '🥉', height: 100)),
+                // Top 3 podium
+                if (entries.length >= 3)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 24),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        // 2nd place
+                        Expanded(child: _PodiumCard(entry: entries[1], medal: '🥈', height: 120)),
+                        const SizedBox(width: 8),
+                        // 1st place
+                        Expanded(child: _PodiumCard(entry: entries[0], medal: '🥇', height: 150)),
+                        const SizedBox(width: 8),
+                        // 3rd place
+                        Expanded(child: _PodiumCard(entry: entries[2], medal: '🥉', height: 100)),
+                      ],
+                    ),
+                  ),
+
+                // Current user highlight
+                Container(
+                  margin: const EdgeInsets.only(bottom: 16),
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    gradient: AppColors.primaryGradient,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Row(
+                    children: [
+                      const Text('👤', style: TextStyle(fontSize: 28)),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Your Rank: #4',
+                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 16),
+                            ),
+                            Text(
+                              '${SampleData.sampleUser.pahalwanRank} • ${SampleData.sampleUser.totalListeningMinutes} min this week',
+                              style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 12),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Column(
+                        children: [
+                          const Text('Street Cred', style: TextStyle(color: Colors.white70, fontSize: 10)),
+                          Text(
+                            '${SampleData.sampleUser.streetCredScore}',
+                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 20),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Remaining entries
+                ...entries.skip(3).map((entry) => Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: _LeaderboardRow(entry: entry),
+                    )),
+
+                // Challenge button
+                const SizedBox(height: 16),
+                KGradientButton(
+                  text: '⚔️ Challenge a Friend',
+                  gradient: AppColors.accentGradient,
+                  onPressed: () {},
+                ),
               ],
             ),
           ),
-
-        // Current user highlight
-        Container(
-          margin: const EdgeInsets.only(bottom: 16),
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            gradient: AppColors.primaryGradient,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          child: Row(
-            children: [
-              const Text('👤', style: TextStyle(fontSize: 28)),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Your Rank: #4',
-                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 16),
-                    ),
-                    Text(
-                      '${SampleData.sampleUser.pahalwanRank} • ${SampleData.sampleUser.totalListeningMinutes} min this week',
-                      style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 12),
-                    ),
-                  ],
-                ),
-              ),
-              Column(
-                children: [
-                  const Text('Street Cred', style: TextStyle(color: Colors.white70, fontSize: 10)),
-                  Text(
-                    '${SampleData.sampleUser.streetCredScore}',
-                    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 20),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-
-        // Remaining entries
-        ...entries.skip(3).map((entry) => Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: _LeaderboardRow(entry: entry),
-            )),
-
-        // Challenge button
-        const SizedBox(height: 16),
-        KGradientButton(
-          text: '⚔️ Challenge a Friend',
-          gradient: AppColors.accentGradient,
-          onPressed: () {},
         ),
       ],
     );

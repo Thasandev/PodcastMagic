@@ -13,6 +13,7 @@ import '../../features/reflections/presentation/screens/reflections_screen.dart'
 import '../../features/reflections/presentation/screens/record_reflection_screen.dart';
 import '../../features/coins/presentation/screens/coins_screen.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
+import '../../features/profile/presentation/screens/edit_profile_screen.dart';
 import '../../features/community/presentation/screens/community_screen.dart';
 
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
@@ -97,6 +98,11 @@ final GoRouter appRouter = GoRouter(
       path: '/settings',
       parentNavigatorKey: _rootNavigatorKey,
       builder: (context, state) => const SettingsScreen(),
+    ),
+    GoRoute(
+      path: '/edit-profile',
+      parentNavigatorKey: _rootNavigatorKey,
+      builder: (context, state) => const EditProfileScreen(),
     ),
     GoRoute(
       path: '/community',
