@@ -107,7 +107,7 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> with SingleTickerProv
   Widget _buildForYouTab(BuildContext context) {
     final episodes = SampleData.sampleEpisodes;
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
       children: [
         // AI recommendation banner
         Container(
@@ -157,7 +157,7 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> with SingleTickerProv
 
   Widget _buildTrendingTab(BuildContext context) {
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
       children: [
         // Trending topics
         Wrap(
@@ -195,7 +195,7 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> with SingleTickerProv
 
   Widget _buildCategoriesTab(BuildContext context) {
     return GridView.builder(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
         childAspectRatio: 1.5,
@@ -241,9 +241,9 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> with SingleTickerProv
   }
 
   Widget _buildYouTubeTab(BuildContext context) {
-    return Center(
+    return SingleChildScrollView(
       child: Padding(
-        padding: const EdgeInsets.all(32),
+        padding: const EdgeInsets.fromLTRB(32, 60, 32, 100),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [

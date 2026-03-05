@@ -78,7 +78,7 @@ class _LibraryScreenState extends State<LibraryScreen> with SingleTickerProvider
       );
     }
     return ListView.builder(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
       itemCount: clips.length,
       itemBuilder: (context, index) {
         final clip = clips[index];
@@ -156,7 +156,7 @@ class _LibraryScreenState extends State<LibraryScreen> with SingleTickerProvider
 
   Widget _buildPlaylistsTab() {
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
       children: [
         // Create playlist button
         KCard(
@@ -220,7 +220,7 @@ class _LibraryScreenState extends State<LibraryScreen> with SingleTickerProvider
   Widget _buildHistoryTab() {
     final episodes = SampleData.sampleEpisodes.take(5).toList();
     return ListView.builder(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
       itemCount: episodes.length,
       itemBuilder: (context, index) {
         final ep = episodes[index];
@@ -240,9 +240,9 @@ class _LibraryScreenState extends State<LibraryScreen> with SingleTickerProvider
   }
 
   Widget _buildEmptyState({required IconData icon, required String title, required String subtitle}) {
-    return Center(
+    return SingleChildScrollView(
       child: Padding(
-        padding: const EdgeInsets.all(32),
+        padding: const EdgeInsets.fromLTRB(32, 80, 32, 100),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [

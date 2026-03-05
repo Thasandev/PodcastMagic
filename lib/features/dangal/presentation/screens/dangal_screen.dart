@@ -114,7 +114,7 @@ class _DangalScreenState extends State<DangalScreen> with SingleTickerProviderSt
   Widget _buildLeaderboard(String type) {
     final entries = SampleData.sampleLeaderboard;
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
       children: [
         Center(
           child: ConstrainedBox(

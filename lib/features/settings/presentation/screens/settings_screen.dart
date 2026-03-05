@@ -147,7 +147,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             onTap: () => _handleLogout(),
           ),
 
-          const SizedBox(height: 40),
+          const SizedBox(height: 140),
         ],
       ),
     );

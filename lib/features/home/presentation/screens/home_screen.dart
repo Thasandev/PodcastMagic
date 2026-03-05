@@ -396,7 +396,7 @@ class HomeScreen extends StatelessWidget {
             ),
           ),
 
-          const SliverToBoxAdapter(child: SizedBox(height: 120)),
+          const SliverToBoxAdapter(child: SizedBox(height: 140)),
         ],
       ),
     );

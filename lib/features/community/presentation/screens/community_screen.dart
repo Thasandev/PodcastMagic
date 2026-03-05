@@ -160,7 +160,7 @@ class CommunityScreen extends StatelessWidget {
           _FriendActivity(name: 'Neha', action: 'shared a reflection about', target: 'Morning Habits', time: '8h ago'),
           _FriendActivity(name: 'Karthik', action: 'reached rank', target: 'Ustaad ⚔️', time: '1d ago'),
 
-          const SizedBox(height: 40),
+          const SizedBox(height: 140),
         ],
       ),
     );
