@@ -1,5 +1,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'dart:convert';
 import '../core/models/models.dart';
 
 final supabaseServiceProvider = Provider<SupabaseService>((ref) {
@@ -58,16 +60,38 @@ class SupabaseService {
 
   // ============ PROFILES ============
 
+  static const String _localProfileKey = 'local_guest_profile';
+
   Future<UserProfile?> getProfile() async {
     if (currentUser == null) {
-      // Return a temporary mock profile if Supabase Auth isn't active
+      // Try to load from SharedPreferences first
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final stored = prefs.getString(_localProfileKey);
+        if (stored != null) {
+          final Map<String, dynamic> json = jsonDecode(stored);
+          return UserProfile(
+            id: 'temp-local-id',
+            name: 'Guest User',
+            languages: List<String>.from(json['languages'] ?? ['en']),
+            interests: List<String>.from(json['interests'] ?? []),
+            commuteDurationMin: json['commuteDurationMin'] as int? ?? 45,
+            onboardingCompleted: json['onboardingCompleted'] as bool? ?? true,
+            createdAt: DateTime.now(),
+          );
+        }
+      } catch (e) {
+        print('Error loading local profile: $e');
+      }
+
+      // Return default mock profile if nothing is stored
       return UserProfile(
         id: 'temp-local-id',
         name: 'Guest User',
         languages: const ['en'],
-        interests: const ['tech'],
+        interests: const [],
         commuteDurationMin: 45,
-        onboardingCompleted: true,
+        onboardingCompleted: false,
         createdAt: DateTime.now(),
       );
     }
@@ -85,7 +109,26 @@ class SupabaseService {
   }
 
   Future<void> updateProfile(Map<String, dynamic> updates) async {
-    if (currentUser == null) return; // Prevent null crash
+    if (currentUser == null) {
+      // Save locally if not authenticated
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final currentProfile = await getProfile();
+        if (currentProfile != null) {
+          final Map<String, dynamic> newProfileData = {
+            'languages': updates.containsKey('languages') ? updates['languages'] : currentProfile.languages,
+            'interests': updates.containsKey('interests') ? updates['interests'] : currentProfile.interests,
+            'commuteDurationMin': updates.containsKey('commute_duration_min') ? updates['commute_duration_min'] : currentProfile.commuteDurationMin,
+            'onboardingCompleted': updates.containsKey('onboarding_completed') ? updates['onboarding_completed'] : currentProfile.onboardingCompleted,
+          };
+          await prefs.setString(_localProfileKey, jsonEncode(newProfileData));
+        }
+      } catch (e) {
+        print('Failed to save local profile: $e');
+      }
+      return;
+    }
+    
     try {
       await _client
           .from('profiles')
@@ -102,7 +145,6 @@ class SupabaseService {
     required int commuteDuration,
     required String preferredVoice,
   }) async {
-    if (currentUser == null) return; // Prevent null crash
     await updateProfile({
       'languages': languages,
       'interests': interests,
