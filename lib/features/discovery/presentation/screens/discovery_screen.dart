@@ -28,8 +28,10 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen> with SingleTi
   // Search state
   String _searchQuery = '';
   bool _isSearching = false;
+  bool _isSyncing = false;
   List<PodcastSearchResult> _searchResults = [];
   Timer? _debounceTimer;
+
 
   @override
   void initState() {
@@ -89,25 +91,23 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen> with SingleTi
   }
 
   Future<void> _handlePodcastTap(PodcastSearchResult podcast) async {
-    // Show loading
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => const Center(child: CircularProgressIndicator()),
-    );
+    if (_isSyncing) return;
+
+    setState(() {
+      _isSyncing = true;
+    });
 
     try {
       final episodes = await ref.read(supabaseServiceProvider).syncAndGetEpisodes(podcast.rssUrl);
       if (mounted) {
-        Navigator.pop(context); // close loading dialog
+        setState(() {
+          _isSyncing = false;
+        });
         if (episodes.isNotEmpty) {
-           // We might want to clear search and navigate, or just update UI
-           // For now, let's pretend we navigate to the player with the first episode
-           // or navigate to a podcast detail screen. Let's just play the first episode
            ScaffoldMessenger.of(context).showSnackBar(
              SnackBar(content: Text('Synced ${episodes.length} episodes for ${podcast.title}!'), backgroundColor: AppColors.success),
            );
-           // context.push('/player', extra: episodes.first);
+           // After syncing, we could navigate to the player or refresh the view
         } else {
            ScaffoldMessenger.of(context).showSnackBar(
              const SnackBar(content: Text('No episodes found in feed'), backgroundColor: AppColors.error),
@@ -116,13 +116,16 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen> with SingleTi
       }
     } catch (e) {
       if (mounted) {
-        Navigator.pop(context);
+        setState(() {
+          _isSyncing = false;
+        });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error syncing podcast: $e'), backgroundColor: AppColors.error),
         );
       }
     }
   }
+
 
   Future<void> _handleYouTubeImport() async {
     final url = _youtubeController.text.trim();
@@ -262,22 +265,46 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen> with SingleTi
 
           // Content
           SliverFillRemaining(
-            child: _searchQuery.isNotEmpty
-                ? _buildSearchResults(context)
-                : TabBarView(
-                    controller: _tabController,
-                    children: [
-                      _buildForYouTab(context),
-                      _buildTrendingTab(context),
-                      _buildCategoriesTab(context),
-                      _buildYouTubeTab(context),
-                    ],
+            child: Stack(
+              children: [
+                _searchQuery.isNotEmpty
+                    ? _buildSearchResults(context)
+                    : TabBarView(
+                        controller: _tabController,
+                        children: [
+                          _buildForYouTab(context),
+                          _buildTrendingTab(context),
+                          _buildCategoriesTab(context),
+                          _buildYouTubeTab(context),
+                        ],
+                      ),
+                if (_isSyncing)
+                  Container(
+                    color: Colors.black.withValues(alpha: 0.3),
+                    child: const Center(
+                      child: Card(
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              CircularProgressIndicator(),
+                              SizedBox(height: 16),
+                              Text('Syncing episodes...', style: TextStyle(fontWeight: FontWeight.bold)),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
                   ),
+              ],
+            ),
           ),
         ],
       ),
     );
   }
+
 
   Widget _buildSearchResults(BuildContext context) {
     if (_isSearching) {

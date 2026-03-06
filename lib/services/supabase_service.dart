@@ -478,10 +478,14 @@ class SupabaseService {
       }
       return [];
     } catch (e) {
+      if (e.toString().contains('401')) {
+        print('Podcast Search Failed with 401: This usually means the Edge Function needs to be deployed with --no-verify-jwt');
+      }
       print('Failed to search external podcasts: $e');
-      return [];
+      rethrow; // Rethrow so UI can show the error
     }
   }
+
 
   Future<List<Episode>> syncAndGetEpisodes(String rssUrl, {String? category}) async {
     try {
@@ -505,9 +509,13 @@ class SupabaseService {
       }
       return [];
     } catch (e) {
+      if (e.toString().contains('401')) {
+        print('Sync Podcast Failed with 401: Ensure function is deployed with --no-verify-jwt');
+      }
       print('Failed to sync podcast: $e');
-      return [];
+      rethrow;
     }
   }
+
 }
 
