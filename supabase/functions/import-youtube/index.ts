@@ -25,9 +25,9 @@ serve(async (req) => {
         const yt = await Innertube.create()
 
         // 2. Extract Video ID from URL
-        const videoId = youtubeUrl.includes('v=')
-            ? youtubeUrl.split('v=')[1].split('&')[0]
-            : youtubeUrl.split('/').pop()?.split('?')[0]
+        const videoIdRegex = /(?:v=|\/)([0-9A-Za-z_-]{11}).*/
+        const match = youtubeUrl.match(videoIdRegex)
+        const videoId = match ? match[1] : null
 
         if (!videoId) throw new Error("Could not extract video ID from URL")
 
@@ -35,7 +35,12 @@ serve(async (req) => {
         console.log(`Getting info for video ID: ${videoId}`)
         const info = await yt.getInfo(videoId)
 
-        // 4. Get basic metadata
+        // 4. Check Playability Status
+        if (info.playability_status?.status !== 'OK') {
+            throw new Error(`YouTube Playability Error: ${info.playability_status?.reason || info.playability_status?.status}`)
+        }
+
+        // 5. Get basic metadata
         const details = info.basic_info
         const title = details.title || 'Unknown Title'
         const description = details.short_description || details.description || 'Imported from YouTube'
@@ -43,12 +48,23 @@ serve(async (req) => {
         const author = details.author || 'YouTube'
         const imageUrl = details.thumbnail?.[0]?.url || ''
 
-        // 5. Get streaming data (audio only)
-        const format = info.chooseFormat({ type: 'audio', quality: 'best' })
+        // 6. Get streaming data (audio only)
+        let format;
+        try {
+            format = info.chooseFormat({ type: 'audio', quality: 'best' })
+        } catch (e) {
+            console.error("ChooseFormat error:", e)
+            if (!info.streaming_data) {
+                throw new Error("Streaming data not available from YouTube (potentially blocked or age-restricted)")
+            }
+            throw e
+        }
+
         if (!format) {
             throw new Error("No audio stream found for this video")
         }
         const audioUrl = format.decipher(yt.session.player)
+
 
         // 6. Initialize Supabase
         const supabase = createClient(
