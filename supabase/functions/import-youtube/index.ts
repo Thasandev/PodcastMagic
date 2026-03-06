@@ -1,7 +1,8 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 // @ts-ignore
-import ytdl from 'https://esm.sh/ytdl-core@latest'
+import ytdl from 'npm:@distube/ytdl-core'
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+
 
 const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
