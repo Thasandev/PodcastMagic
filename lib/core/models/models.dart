@@ -452,3 +452,30 @@ class Badge {
     this.unlockedAt,
   });
 }
+
+class PodcastSearchResult {
+  final String title;
+  final String author;
+  final String? imageUrl;
+  final String rssUrl;
+  final String provider;
+
+  const PodcastSearchResult({
+    required this.title,
+    required this.author,
+    this.imageUrl,
+    required this.rssUrl,
+    required this.provider,
+  });
+
+  factory PodcastSearchResult.fromJson(Map<String, dynamic> json) {
+    return PodcastSearchResult(
+      title: json['title'] as String,
+      author: json['author'] as String? ?? 'Unknown',
+      imageUrl: json['imageUrl'] as String?,
+      rssUrl: json['rssUrl'] as String,
+      provider: json['provider'] as String? ?? 'unknown',
+    );
+  }
+}
+

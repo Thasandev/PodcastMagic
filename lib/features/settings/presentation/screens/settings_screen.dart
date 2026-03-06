@@ -5,6 +5,9 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/pickers.dart';
 import '../../../../services/supabase_service.dart';
 import '../../../auth/data/repositories/auth_repository.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../../auth/data/repositories/auth_repository.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -22,6 +25,37 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   bool _friendActivity = true;
   double _playbackSpeed = 1.0;
   String _audioQuality = 'High';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPreferences();
+  }
+
+  Future<void> _loadPreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _darkMode = prefs.getBool('settings_dark_mode') ?? true;
+      _offlineMode = prefs.getBool('settings_offline_mode') ?? false;
+      _notificationsEnabled = prefs.getBool('settings_notifications') ?? true;
+      _streakReminders = prefs.getBool('settings_streak_reminders') ?? true;
+      _friendActivity = prefs.getBool('settings_friend_activity') ?? true;
+      _playbackSpeed = prefs.getDouble('settings_playback_speed') ?? 1.0;
+      _audioQuality = prefs.getString('settings_audio_quality') ?? 'High';
+    });
+  }
+
+  Future<void> _savePreference<T>(String key, T value) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (value is bool) {
+      await prefs.setBool(key, value);
+    } else if (value is double) {
+      await prefs.setDouble(key, value);
+    } else if (value is String) {
+      await prefs.setString(key, value);
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -77,7 +111,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               items: [0.5, 0.75, 1.0, 1.25, 1.5, 2.0, 3.0]
                   .map((s) => DropdownMenuItem(value: s, child: Text('${s}x', style: const TextStyle(color: Colors.white))))
                   .toList(),
-              onChanged: (val) => setState(() => _playbackSpeed = val ?? 1.0),
+              onChanged: (val) {
+                if (val != null) {
+                  setState(() => _playbackSpeed = val);
+                  _savePreference('settings_playback_speed', val);
+                }
+              },
             ),
           ),
           ListTile(
@@ -93,7 +132,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         child: Text(q, style: const TextStyle(color: Colors.white)),
                       ))
                   .toList(),
-              onChanged: (val) => setState(() => _audioQuality = val ?? 'High'),
+              onChanged: (val) {
+                if (val != null) {
+                  setState(() => _audioQuality = val);
+                  _savePreference('settings_audio_quality', val);
+                }
+              },
             ),
           ),
           SwitchListTile(
@@ -101,7 +145,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             title: const Text('Offline Mode'),
             subtitle: const Text('Download content for commute'),
             value: _offlineMode,
-            onChanged: (val) => setState(() => _offlineMode = val),
+            onChanged: (val) {
+              setState(() => _offlineMode = val);
+              _savePreference('settings_offline_mode', val);
+            },
           ),
 
           // Appearance
@@ -110,7 +157,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             secondary: const Icon(Icons.dark_mode, color: AppColors.primary),
             title: const Text('Dark Mode'),
             value: _darkMode,
-            onChanged: (val) => setState(() => _darkMode = val),
+            onChanged: (val) {
+              setState(() => _darkMode = val);
+              _savePreference('settings_dark_mode', val);
+            },
           ),
 
           // Notifications
@@ -119,21 +169,30 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             secondary: const Icon(Icons.notifications, color: AppColors.primary),
             title: const Text('Push Notifications'),
             value: _notificationsEnabled,
-            onChanged: (val) => setState(() => _notificationsEnabled = val),
+            onChanged: (val) {
+              setState(() => _notificationsEnabled = val);
+              _savePreference('settings_notifications', val);
+            },
           ),
           SwitchListTile(
             secondary: const Icon(Icons.local_fire_department, color: AppColors.primary),
             title: const Text('Streak Reminders'),
             subtitle: const Text('Remind before streak breaks'),
             value: _streakReminders,
-            onChanged: (val) => setState(() => _streakReminders = val),
+            onChanged: (val) {
+              setState(() => _streakReminders = val);
+              _savePreference('settings_streak_reminders', val);
+            },
           ),
           SwitchListTile(
             secondary: const Icon(Icons.people, color: AppColors.primary),
             title: const Text('Friend Activity'),
             subtitle: const Text('When friends save or reflect'),
             value: _friendActivity,
-            onChanged: (val) => setState(() => _friendActivity = val),
+            onChanged: (val) {
+              setState(() => _friendActivity = val);
+              _savePreference('settings_friend_activity', val);
+            },
           ),
 
           // Integrations

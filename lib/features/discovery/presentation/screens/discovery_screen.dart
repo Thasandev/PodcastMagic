@@ -7,6 +7,9 @@ import '../../../../core/constants/app_constants.dart';
 import '../../../../services/supabase_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:youtube_explode_dart/youtube_explode_dart.dart';
+import '../../../../core/models/models.dart';
+import 'dart:async';
+
 
 class DiscoveryScreen extends ConsumerStatefulWidget {
   const DiscoveryScreen({super.key});
@@ -18,8 +21,15 @@ class DiscoveryScreen extends ConsumerStatefulWidget {
 class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen> with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final TextEditingController _youtubeController = TextEditingController();
+  final TextEditingController _searchController = TextEditingController();
   bool _isImporting = false;
   String? _importStatus;
+  
+  // Search state
+  String _searchQuery = '';
+  bool _isSearching = false;
+  List<PodcastSearchResult> _searchResults = [];
+  Timer? _debounceTimer;
 
   @override
   void initState() {
@@ -31,7 +41,87 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen> with SingleTi
   void dispose() {
     _tabController.dispose();
     _youtubeController.dispose();
+    _searchController.dispose();
+    _debounceTimer?.cancel();
     super.dispose();
+  }
+
+  void _onSearchChanged(String query) {
+    setState(() {
+      _searchQuery = query;
+    });
+
+    if (_debounceTimer?.isActive ?? false) _debounceTimer!.cancel();
+
+    if (query.trim().isEmpty) {
+      setState(() {
+        _searchResults = [];
+        _isSearching = false;
+      });
+      return;
+    }
+
+    _debounceTimer = Timer(const Duration(milliseconds: 500), () {
+      _performSearch(query);
+    });
+  }
+
+  Future<void> _performSearch(String query) async {
+    setState(() {
+      _isSearching = true;
+    });
+
+    try {
+      final results = await ref.read(supabaseServiceProvider).searchExternalPodcasts(query);
+      if (mounted && _searchQuery == query) {
+        setState(() {
+          _searchResults = results;
+          _isSearching = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isSearching = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _handlePodcastTap(PodcastSearchResult podcast) async {
+    // Show loading
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
+    );
+
+    try {
+      final episodes = await ref.read(supabaseServiceProvider).syncAndGetEpisodes(podcast.rssUrl);
+      if (mounted) {
+        Navigator.pop(context); // close loading dialog
+        if (episodes.isNotEmpty) {
+           // We might want to clear search and navigate, or just update UI
+           // For now, let's pretend we navigate to the player with the first episode
+           // or navigate to a podcast detail screen. Let's just play the first episode
+           ScaffoldMessenger.of(context).showSnackBar(
+             SnackBar(content: Text('Synced ${episodes.length} episodes for ${podcast.title}!'), backgroundColor: AppColors.success),
+           );
+           // context.push('/player', extra: episodes.first);
+        } else {
+           ScaffoldMessenger.of(context).showSnackBar(
+             const SnackBar(content: Text('No episodes found in feed'), backgroundColor: AppColors.error),
+           );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error syncing podcast: $e'), backgroundColor: AppColors.error),
+        );
+      }
+    }
   }
 
   Future<void> _handleYouTubeImport() async {
@@ -124,37 +214,47 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen> with SingleTi
                         borderRadius: BorderRadius.circular(14),
                       ),
                       child: TextField(
+                        controller: _searchController,
                         decoration: InputDecoration(
                           hintText: 'Search podcasts, topics, creators...',
                           prefixIcon: const Icon(Icons.search, color: AppColors.grey500),
-                          suffixIcon: IconButton(
-                            icon: const Icon(Icons.mic, color: AppColors.primary),
-                            onPressed: () {},
-                          ),
+                          suffixIcon: _searchQuery.isNotEmpty 
+                              ? IconButton(
+                                  icon: const Icon(Icons.close, color: AppColors.grey500),
+                                  onPressed: () {
+                                    _searchController.clear();
+                                    _onSearchChanged('');
+                                  },
+                                )
+                              : IconButton(
+                                  icon: const Icon(Icons.mic, color: AppColors.primary),
+                                  onPressed: () {},
+                                ),
                           border: InputBorder.none,
                           enabledBorder: InputBorder.none,
                           focusedBorder: InputBorder.none,
                           contentPadding: const EdgeInsets.symmetric(vertical: 14),
                         ),
-                        onChanged: (val) {},
+                        onChanged: _onSearchChanged,
                       ),
+
                     ),
                   ),
-                  // Tabs
-                  TabBar(
-                    controller: _tabController,
-                    isScrollable: true,
-                    indicatorColor: AppColors.primary,
-                    labelColor: AppColors.primary,
-                    unselectedLabelColor: AppColors.grey500,
-                    tabAlignment: TabAlignment.start,
-                    tabs: const [
-                      Tab(text: '🔥 For You'),
-                      Tab(text: '📈 Trending'),
-                      Tab(text: '📚 Categories'),
-                      Tab(text: '🎬 YouTube Import'),
-                    ],
-                  ),
+                  if (_searchQuery.isEmpty)
+                    TabBar(
+                      controller: _tabController,
+                      isScrollable: true,
+                      indicatorColor: AppColors.primary,
+                      labelColor: AppColors.primary,
+                      unselectedLabelColor: AppColors.grey500,
+                      tabAlignment: TabAlignment.start,
+                      tabs: const [
+                        Tab(text: '🔥 For You'),
+                        Tab(text: '📈 Trending'),
+                        Tab(text: '📚 Categories'),
+                        Tab(text: '🎬 YouTube Import'),
+                      ],
+                    ),
                 ],
               ),
             ),
@@ -162,20 +262,59 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen> with SingleTi
 
           // Content
           SliverFillRemaining(
-            child: TabBarView(
-              controller: _tabController,
-              children: [
-                _buildForYouTab(context),
-                _buildTrendingTab(context),
-                _buildCategoriesTab(context),
-                _buildYouTubeTab(context),
-              ],
-            ),
+            child: _searchQuery.isNotEmpty
+                ? _buildSearchResults(context)
+                : TabBarView(
+                    controller: _tabController,
+                    children: [
+                      _buildForYouTab(context),
+                      _buildTrendingTab(context),
+                      _buildCategoriesTab(context),
+                      _buildYouTubeTab(context),
+                    ],
+                  ),
           ),
         ],
       ),
     );
   }
+
+  Widget _buildSearchResults(BuildContext context) {
+    if (_isSearching) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_searchResults.isEmpty) {
+      return Center(
+        child: Text('No podcasts found for "$_searchQuery"', 
+          style: Theme.of(context).textTheme.bodyLarge?.copyWith(color: AppColors.grey500)
+        ),
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+      itemCount: _searchResults.length,
+      itemBuilder: (context, index) {
+        final result = _searchResults[index];
+        return ListTile(
+          contentPadding: const EdgeInsets.symmetric(vertical: 8),
+          leading: result.imageUrl != null 
+              ? ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.network(result.imageUrl!, width: 56, height: 56, fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Container(width: 56, height: 56, color: AppColors.grey200, child: const Icon(Icons.mic))),
+                )
+              : Container(width: 56, height: 56, decoration: BoxDecoration(color: AppColors.grey200, borderRadius: BorderRadius.circular(8)), child: const Icon(Icons.mic)),
+          title: Text(result.title, style: const TextStyle(fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
+          subtitle: Text(result.author, maxLines: 1, overflow: TextOverflow.ellipsis),
+          trailing: const Icon(Icons.download_rounded, color: AppColors.primary),
+          onTap: () => _handlePodcastTap(result),
+        );
+      },
+    );
+  }
+
 
   Widget _buildForYouTab(BuildContext context) {
     final episodesAsync = ref.watch(episodeFeedProvider(null));

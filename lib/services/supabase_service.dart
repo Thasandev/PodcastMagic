@@ -461,4 +461,53 @@ class SupabaseService {
       callback: (payload) => onData(payload.newRecord),
     ).subscribe();
   }
+
+  // ============ EXTERNAL PODCAST INTEGRATION ============
+
+  Future<List<PodcastSearchResult>> searchExternalPodcasts(String query, {String provider = 'itunes'}) async {
+    try {
+      final response = await _client.functions.invoke(
+        'search-podcasts',
+        body: {'query': query, 'provider': provider},
+      );
+      
+      final data = response.data;
+      if (data != null && data['success'] == true) {
+        final resultsList = data['results'] as List;
+        return resultsList.map((e) => PodcastSearchResult.fromJson(e)).toList();
+      }
+      return [];
+    } catch (e) {
+      print('Failed to search external podcasts: $e');
+      return [];
+    }
+  }
+
+  Future<List<Episode>> syncAndGetEpisodes(String rssUrl, {String? category}) async {
+    try {
+      final response = await _client.functions.invoke(
+        'sync-podcast',
+        body: {'rssUrl': rssUrl, 'category': category ?? 'General'},
+      );
+      
+      final data = response.data;
+      if (data != null && data['success'] == true) {
+        // Fetch the episodes we just synced from the database
+        final podcastId = data['podcast']['id'];
+        final episodesData = await _client
+            .from('episodes')
+            .select('*, podcasts(title, image_url)')
+            .eq('podcast_id', podcastId)
+            .order('published_at', ascending: false)
+            .limit(20);
+            
+        return episodesData.map<Episode>((e) => Episode.fromJson(e)).toList();
+      }
+      return [];
+    } catch (e) {
+      print('Failed to sync podcast: $e');
+      return [];
+    }
+  }
 }
+
