@@ -20,11 +20,13 @@ serve(async (req) => {
             throw new Error("youtubeUrl is required")
         }
 
-        // 1. Initialize Innertube with TV_EMBEDDED client to bypass bot detection
-        console.log(`Initializing Innertube (TV_EMBEDDED) for: ${youtubeUrl}`)
+        // 1. Initialize Innertube with TV client to bypass bot detection
+        // TVHTML5 client is often the most stable choice for datacenter IPs.
+        console.log(`Initializing Innertube (TV) for: ${youtubeUrl}`)
         const yt = await Innertube.create({
-            client_type: 'TV_EMBEDDED'
+            client_type: 'TV'
         })
+
 
 
         // 2. Extract Video ID from URL
