@@ -20,9 +20,12 @@ serve(async (req) => {
             throw new Error("youtubeUrl is required")
         }
 
-        // 1. Initialize Innertube
-        console.log(`Initializing Innertube for: ${youtubeUrl}`)
-        const yt = await Innertube.create()
+        // 1. Initialize Innertube with TV_EMBEDDED client to bypass bot detection
+        console.log(`Initializing Innertube (TV_EMBEDDED) for: ${youtubeUrl}`)
+        const yt = await Innertube.create({
+            client_type: 'TV_EMBEDDED'
+        })
+
 
         // 2. Extract Video ID from URL
         const videoIdRegex = /(?:v=|\/)([0-9A-Za-z_-]{11}).*/
