@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/data/sample_data.dart';
 import '../../../../core/widgets/shared_widgets.dart';
 
@@ -17,18 +19,24 @@ class ProfileScreen extends StatelessWidget {
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
-            expandedHeight: 280,
+            expandedHeight: 300,
             pinned: true,
             backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
             actions: [
-              IconButton(onPressed: () => context.push('/settings'), icon: const Icon(Icons.settings_outlined)),
-              IconButton(onPressed: () => context.push('/coins'), icon: const Icon(Icons.monetization_on_outlined)),
+              IconButton(
+                onPressed: () => context.push('/settings'),
+                icon: const Icon(Icons.settings_outlined, color: AppColors.grey400),
+              ),
+              IconButton(
+                onPressed: () => context.push('/coins'),
+                icon: const Icon(Icons.monetization_on_outlined, color: AppColors.accent),
+              ),
             ],
             flexibleSpace: FlexibleSpaceBar(
               background: Container(
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [Color(0xFF2E4057), Color(0xFF1A2A3D)],
+                    colors: [Color(0xFF1A1530), Color(0xFF0F1117)],
                     begin: Alignment.topCenter,
                     end: Alignment.bottomCenter,
                   ),
@@ -37,50 +45,60 @@ class ProfileScreen extends StatelessWidget {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const SizedBox(height: 30),
-                      // Avatar
+                      const SizedBox(height: 36),
+                      // Avatar with gradient ring
                       Container(
-                        width: 90,
-                        height: 90,
+                        width: 100,
+                        height: 100,
                         decoration: BoxDecoration(
-                          gradient: AppColors.primaryGradient,
                           shape: BoxShape.circle,
+                          gradient: AppColors.primaryGradient,
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.primary.withValues(alpha: 0.4),
-                              blurRadius: 20,
+                              color: AppColors.primary.withValues(alpha: 0.35),
+                              blurRadius: 24,
                             ),
                           ],
                         ),
-                        child: Center(
-                          child: Text(
-                            user.name[0],
-                            style: const TextStyle(color: Colors.white, fontSize: 36, fontWeight: FontWeight.w800),
+                        padding: const EdgeInsets.all(3),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: const Color(0xFF1A1530),
+                          ),
+                          child: Center(
+                            child: Text(
+                              user.name[0],
+                              style: AppTextStyles.displayMedium.copyWith(color: Colors.white),
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 12),
+                      ).animate().scale(begin: const Offset(0.8, 0.8), duration: 500.ms, curve: Curves.easeOut),
+                      const SizedBox(height: 14),
                       Text(
                         user.name,
-                        style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w800),
+                        style: AppTextStyles.headlineLarge.copyWith(color: Colors.white),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         user.bio ?? '',
-                        style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 13),
+                        style: AppTextStyles.bodySmall.copyWith(color: AppColors.grey500),
                         textAlign: TextAlign.center,
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 14),
                       // Rank badge
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 7),
                         decoration: BoxDecoration(
                           gradient: AppColors.goldGradient,
-                          borderRadius: BorderRadius.circular(20),
+                          borderRadius: BorderRadius.circular(24),
+                          boxShadow: [
+                            BoxShadow(color: AppColors.accent.withValues(alpha: 0.25), blurRadius: 12),
+                          ],
                         ),
                         child: Text(
                           '⚔️ ${user.pahalwanRank}',
-                          style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13, color: Colors.black87),
+                          style: AppTextStyles.labelMedium.copyWith(color: Colors.black87, fontWeight: FontWeight.w800),
                         ),
                       ),
                     ],
@@ -90,53 +108,25 @@ class ProfileScreen extends StatelessWidget {
             ),
           ),
 
-          // Stats row
+          // ── Stats ──
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Row(
                 children: [
-                  Expanded(
-                    child: _ProfileStat(
-                      label: 'Listening',
-                      value: '${(user.totalListeningMinutes / 60).toStringAsFixed(0)}h',
-                      icon: Icons.headphones,
-                      color: AppColors.primary,
-                    ),
-                  ),
+                  Expanded(child: _ProfileStat(label: 'Listening', value: '${(user.totalListeningMinutes / 60).toStringAsFixed(0)}h', icon: Icons.headphones_rounded, color: AppColors.primary)),
                   const SizedBox(width: 8),
-                  Expanded(
-                    child: _ProfileStat(
-                      label: 'Streak',
-                      value: '${user.currentStreak} 🔥',
-                      icon: Icons.local_fire_department,
-                      color: AppColors.error,
-                    ),
-                  ),
+                  Expanded(child: _ProfileStat(label: 'Streak', value: '${user.currentStreak} 🔥', icon: Icons.local_fire_department_rounded, color: AppColors.error)),
                   const SizedBox(width: 8),
-                  Expanded(
-                    child: _ProfileStat(
-                      label: 'Coins',
-                      value: '${user.kaanCoins}',
-                      icon: Icons.monetization_on,
-                      color: AppColors.gold,
-                    ),
-                  ),
+                  Expanded(child: _ProfileStat(label: 'Coins', value: '${user.kaanCoins}', icon: Icons.monetization_on_rounded, color: AppColors.accent)),
                   const SizedBox(width: 8),
-                  Expanded(
-                    child: _ProfileStat(
-                      label: 'Score',
-                      value: '${user.streetCredScore}',
-                      icon: Icons.stars,
-                      color: AppColors.accent,
-                    ),
-                  ),
+                  Expanded(child: _ProfileStat(label: 'Score', value: '${user.streetCredScore}', icon: Icons.stars_rounded, color: AppColors.jade)),
                 ],
               ),
-            ),
+            ).animate().fadeIn(delay: 200.ms, duration: 500.ms),
           ),
 
-          // Streak section
+          // ── Streak section ──
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -146,35 +136,37 @@ class ProfileScreen extends StatelessWidget {
                   children: [
                     Row(
                       children: [
-                        Text('🔥', style: const TextStyle(fontSize: 32)),
+                        const Text('🔥', style: TextStyle(fontSize: 32)),
                         const SizedBox(width: 12),
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
                               '${user.currentStreak} Day Streak',
-                              style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800),
+                              style: AppTextStyles.headlineMedium.copyWith(
+                                color: isDark ? Colors.white : AppColors.secondary,
+                              ),
                             ),
                             Text(
                               'Longest: ${user.longestStreak} days',
-                              style: Theme.of(context).textTheme.bodySmall,
+                              style: AppTextStyles.caption,
                             ),
                           ],
                         ),
                         const Spacer(),
                         OutlinedButton.icon(
                           onPressed: () {},
-                          icon: const Icon(Icons.shield, size: 16),
+                          icon: const Icon(Icons.shield_rounded, size: 16),
                           label: const Text('Insure', style: TextStyle(fontSize: 12)),
                           style: OutlinedButton.styleFrom(
-                            foregroundColor: AppColors.accent,
-                            side: const BorderSide(color: AppColors.accent),
+                            foregroundColor: AppColors.jade,
+                            side: const BorderSide(color: AppColors.jade),
                             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 18),
                     // Week view
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -187,15 +179,17 @@ class ProfileScreen extends StatelessWidget {
                               width: 36,
                               height: 36,
                               decoration: BoxDecoration(
-                                color: isCompleted
-                                    ? AppColors.primary
-                                    : (isDark ? AppColors.darkCard : AppColors.grey100),
+                                gradient: isCompleted ? AppColors.primaryGradient : null,
+                                color: isCompleted ? null : AppColors.darkCard,
                                 shape: BoxShape.circle,
-                                border: isToday ? Border.all(color: AppColors.gold, width: 2) : null,
+                                border: isToday ? Border.all(color: AppColors.accent, width: 2) : null,
+                                boxShadow: isCompleted
+                                    ? [BoxShadow(color: AppColors.primary.withValues(alpha: 0.2), blurRadius: 8)]
+                                    : null,
                               ),
                               child: Icon(
-                                isCompleted ? Icons.check : Icons.circle,
-                                color: isCompleted ? Colors.white : AppColors.grey400,
+                                isCompleted ? Icons.check_rounded : Icons.circle,
+                                color: isCompleted ? Colors.white : AppColors.grey700,
                                 size: isCompleted ? 20 : 8,
                               ),
                             ),
@@ -205,7 +199,7 @@ class ProfileScreen extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 10,
                                 fontWeight: isToday ? FontWeight.w700 : FontWeight.w400,
-                                color: isToday ? AppColors.primary : AppColors.grey500,
+                                color: isToday ? AppColors.accent : AppColors.grey500,
                               ),
                             ),
                           ],
@@ -218,7 +212,7 @@ class ProfileScreen extends StatelessWidget {
             ),
           ),
 
-          // Badges
+          // ── Badges ──
           SliverToBoxAdapter(
             child: Column(
               children: [
@@ -241,20 +235,20 @@ class ProfileScreen extends StatelessWidget {
                               height: 56,
                               decoration: BoxDecoration(
                                 color: badge.isUnlocked
-                                    ? AppColors.primary.withValues(alpha: 0.15)
-                                    : (isDark ? AppColors.darkCard : AppColors.grey100),
+                                    ? AppColors.primary.withValues(alpha: 0.12)
+                                    : AppColors.darkCard,
                                 shape: BoxShape.circle,
                                 border: badge.isUnlocked
                                     ? Border.all(color: AppColors.primary, width: 2)
+                                    : null,
+                                boxShadow: badge.isUnlocked
+                                    ? [BoxShadow(color: AppColors.primary.withValues(alpha: 0.15), blurRadius: 10)]
                                     : null,
                               ),
                               child: Center(
                                 child: Text(
                                   badge.icon,
-                                  style: TextStyle(
-                                    fontSize: 24,
-                                    color: badge.isUnlocked ? null : AppColors.grey400,
-                                  ),
+                                  style: TextStyle(fontSize: 24, color: badge.isUnlocked ? null : AppColors.grey600),
                                 ),
                               ),
                             ),
@@ -264,7 +258,7 @@ class ProfileScreen extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 10,
                                 fontWeight: FontWeight.w600,
-                                color: badge.isUnlocked ? null : AppColors.grey500,
+                                color: badge.isUnlocked ? null : AppColors.grey600,
                               ),
                               textAlign: TextAlign.center,
                               maxLines: 2,
@@ -272,7 +266,7 @@ class ProfileScreen extends StatelessWidget {
                             ),
                           ],
                         ),
-                      );
+                      ).animate().fadeIn(delay: (index * 80).ms, duration: 400.ms);
                     },
                   ),
                 ),
@@ -280,16 +274,16 @@ class ProfileScreen extends StatelessWidget {
             ),
           ),
 
-          // Quick actions
+          // ── Quick actions ──
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
-                  _QuickAction(icon: Icons.mic, label: 'My Reflections', subtitle: '12 reflections', onTap: () => context.push('/reflections')),
-                  _QuickAction(icon: Icons.people, label: 'Friends', subtitle: '24 friends on Kaan', onTap: () {}),
-                  _QuickAction(icon: Icons.card_giftcard, label: 'Refer & Earn', subtitle: 'Get 100 coins per referral', onTap: () {}),
-                  _QuickAction(icon: Icons.download, label: 'Export Notes', subtitle: 'Notion, Readwise, Obsidian', onTap: () {}),
+                  _QuickAction(icon: Icons.mic_rounded, label: 'My Reflections', subtitle: '12 reflections', onTap: () => context.push('/reflections')),
+                  _QuickAction(icon: Icons.people_rounded, label: 'Friends', subtitle: '24 friends on Kaan', onTap: () {}),
+                  _QuickAction(icon: Icons.card_giftcard_rounded, label: 'Refer & Earn', subtitle: 'Get 100 coins per referral', onTap: () {}),
+                  _QuickAction(icon: Icons.download_rounded, label: 'Export Notes', subtitle: 'Notion, Readwise, Obsidian', onTap: () {}),
                 ],
               ),
             ),
@@ -316,9 +310,16 @@ class _ProfileStat extends StatelessWidget {
       padding: const EdgeInsets.all(10),
       child: Column(
         children: [
-          Icon(icon, color: color, size: 20),
-          const SizedBox(height: 4),
-          Text(value, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15, color: color)),
+          Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(icon, color: color, size: 18),
+          ),
+          const SizedBox(height: 6),
+          Text(value, style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14, color: color)),
           Text(label, style: TextStyle(fontSize: 10, color: AppColors.grey500)),
         ],
       ),
@@ -347,7 +348,7 @@ class _QuickAction extends StatelessWidget {
       ),
       title: Text(label, style: const TextStyle(fontWeight: FontWeight.w600)),
       subtitle: Text(subtitle, style: TextStyle(fontSize: 12, color: AppColors.grey500)),
-      trailing: const Icon(Icons.chevron_right, color: AppColors.grey400),
+      trailing: const Icon(Icons.chevron_right_rounded, color: AppColors.grey600),
       onTap: onTap,
       contentPadding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
     );

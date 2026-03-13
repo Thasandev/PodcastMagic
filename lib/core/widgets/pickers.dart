@@ -1,105 +1,121 @@
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_text_styles.dart';
 import '../constants/app_constants.dart';
-import 'shared_widgets.dart';
 
-class LanguagePickerDialog extends StatefulWidget {
-  final Set<String> initialLanguages;
-  final Function(Set<String>) onSaved;
+/// ═══════════════════════════════════════════════════════════════
+///  Dialect Pickers — Redesigned with Vinyl Lounge aesthetic
+/// ═══════════════════════════════════════════════════════════════
 
-  const LanguagePickerDialog({
-    super.key,
-    required this.initialLanguages,
-    required this.onSaved,
-  });
-
-  @override
-  State<LanguagePickerDialog> createState() => _LanguagePickerDialogState();
+Future<Set<String>?> showLanguagePicker(BuildContext context, Set<String> initial) {
+  return showModalBottomSheet<Set<String>>(
+    context: context,
+    backgroundColor: AppColors.darkCard,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+    ),
+    isScrollControlled: true,
+    builder: (context) => _LanguagePickerSheet(initial: initial),
+  );
 }
 
-class _LanguagePickerDialogState extends State<LanguagePickerDialog> {
-  late Set<String> _selectedLanguages;
+Future<Set<String>?> showInterestPicker(BuildContext context, Set<String> initial) {
+  return showModalBottomSheet<Set<String>>(
+    context: context,
+    backgroundColor: AppColors.darkCard,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+    ),
+    isScrollControlled: true,
+    builder: (context) => _InterestPickerSheet(initial: initial),
+  );
+}
+
+Future<double?> showCommuteDurationPicker(BuildContext context, double initial) {
+  return showModalBottomSheet<double>(
+    context: context,
+    backgroundColor: AppColors.darkCard,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+    ),
+    builder: (context) => _CommuteDurationSheet(initial: initial),
+  );
+}
+
+class _LanguagePickerSheet extends StatefulWidget {
+  final Set<String> initial;
+  const _LanguagePickerSheet({required this.initial});
+
+  @override
+  State<_LanguagePickerSheet> createState() => _LanguagePickerSheetState();
+}
+
+class _LanguagePickerSheetState extends State<_LanguagePickerSheet> {
+  late Set<String> _selected;
 
   @override
   void initState() {
     super.initState();
-    _selectedLanguages = Set.from(widget.initialLanguages);
+    _selected = {...widget.initial};
   }
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
-      backgroundColor: const Color(0xFF1A1E24),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      child: Container(
-        padding: const EdgeInsets.all(24),
-        constraints: const BoxConstraints(maxWidth: 400),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Select Languages 🌏',
-              style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800),
-            ),
-            const SizedBox(height: 16),
-            Flexible(
-              child: SingleChildScrollView(
+    return DraggableScrollableSheet(
+      initialChildSize: 0.6,
+      maxChildSize: 0.85,
+      expand: false,
+      builder: (context, controller) {
+        return Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(width: 40, height: 4, decoration: BoxDecoration(color: AppColors.grey700, borderRadius: BorderRadius.circular(2))),
+              ),
+              const SizedBox(height: 20),
+              Text('Languages', style: AppTextStyles.headlineLarge),
+              const SizedBox(height: 4),
+              Text('Select your preferred languages', style: AppTextStyles.bodySmall.copyWith(color: AppColors.grey500)),
+              const SizedBox(height: 20),
+              Expanded(
                 child: GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
+                  controller: controller,
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
-                    childAspectRatio: 2.5,
+                    childAspectRatio: 2.3,
                     crossAxisSpacing: 10,
                     mainAxisSpacing: 10,
                   ),
                   itemCount: AppConstants.supportedLanguages.length,
                   itemBuilder: (context, index) {
                     final lang = AppConstants.supportedLanguages[index];
-                    final isSelected = _selectedLanguages.contains(lang['code']);
+                    final isSelected = _selected.contains(lang['code']);
                     return InkWell(
                       onTap: () {
                         setState(() {
-                          if (isSelected) {
-                            if (_selectedLanguages.length > 1) {
-                              _selectedLanguages.remove(lang['code']);
-                            }
+                          if (isSelected && _selected.length > 1) {
+                            _selected.remove(lang['code']);
                           } else {
-                            _selectedLanguages.add(lang['code']!);
+                            _selected.add(lang['code']!);
                           }
                         });
                       },
-                      borderRadius: BorderRadius.circular(12),
-                      child: Container(
+                      borderRadius: BorderRadius.circular(14),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
                         decoration: BoxDecoration(
-                          color: isSelected
-                              ? AppColors.primary.withValues(alpha: 0.15)
-                              : Colors.white.withValues(alpha: 0.05),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: isSelected ? AppColors.primary : Colors.white.withValues(alpha: 0.1),
-                          ),
+                          color: isSelected ? AppColors.primary.withValues(alpha: 0.12) : Colors.white.withValues(alpha: 0.04),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: isSelected ? AppColors.primary : AppColors.darkDivider),
                         ),
                         child: Center(
                           child: Column(
-                            mainAxisSize: MainAxisSize.min,
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Text(
-                                lang['nativeName']!,
-                                style: TextStyle(
-                                  color: isSelected ? AppColors.primary : Colors.white70,
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 14,
-                                ),
-                              ),
-                              Text(
-                                lang['name']!,
-                                style: TextStyle(
-                                  color: Colors.white.withValues(alpha: 0.4),
-                                  fontSize: 10,
-                                ),
-                              ),
+                              Text(lang['nativeName']!, style: TextStyle(fontWeight: FontWeight.w700, color: isSelected ? AppColors.primary : AppColors.grey300)),
+                              Text(lang['name']!, style: TextStyle(fontSize: 11, color: AppColors.grey500)),
                             ],
                           ),
                         ),
@@ -108,131 +124,95 @@ class _LanguagePickerDialogState extends State<LanguagePickerDialog> {
                   },
                 ),
               ),
-            ),
-            const SizedBox(height: 24),
-            Row(
-              children: [
-                Expanded(
-                  child: TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
-                  ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () => Navigator.of(context).pop(_selected),
+                  child: const Text('Done'),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: KGradientButton(
-                    text: 'Save',
-                    onPressed: () {
-                      widget.onSaved(_selectedLanguages);
-                      Navigator.pop(context);
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
 
-class InterestPickerDialog extends StatefulWidget {
-  final Set<String> initialInterests;
-  final Function(Set<String>) onSaved;
-
-  const InterestPickerDialog({
-    super.key,
-    required this.initialInterests,
-    required this.onSaved,
-  });
+class _InterestPickerSheet extends StatefulWidget {
+  final Set<String> initial;
+  const _InterestPickerSheet({required this.initial});
 
   @override
-  State<InterestPickerDialog> createState() => _InterestPickerDialogState();
+  State<_InterestPickerSheet> createState() => _InterestPickerSheetState();
 }
 
-class _InterestPickerDialogState extends State<InterestPickerDialog> {
-  late Set<String> _selectedInterests;
+class _InterestPickerSheetState extends State<_InterestPickerSheet> {
+  late Set<String> _selected;
 
   @override
   void initState() {
     super.initState();
-    _selectedInterests = Set.from(widget.initialInterests);
+    _selected = {...widget.initial};
   }
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
-      backgroundColor: const Color(0xFF1A1E24),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      child: Container(
-        padding: const EdgeInsets.all(24),
-        constraints: const BoxConstraints(maxWidth: 400),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'What interests you? 🎯',
-              style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w800),
-            ),
-            const SizedBox(height: 16),
-            Flexible(
-              child: SingleChildScrollView(
+    return DraggableScrollableSheet(
+      initialChildSize: 0.7,
+      maxChildSize: 0.9,
+      expand: false,
+      builder: (context, controller) {
+        return Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(width: 40, height: 4, decoration: BoxDecoration(color: AppColors.grey700, borderRadius: BorderRadius.circular(2))),
+              ),
+              const SizedBox(height: 20),
+              Text('Interests', style: AppTextStyles.headlineLarge),
+              const SizedBox(height: 4),
+              Text('Pick at least 3 topics', style: AppTextStyles.bodySmall.copyWith(color: AppColors.grey500)),
+              const SizedBox(height: 20),
+              Expanded(
                 child: GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
+                  controller: controller,
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                     crossAxisCount: 2,
-                    childAspectRatio: 2.2,
+                    childAspectRatio: 2.0,
                     crossAxisSpacing: 10,
                     mainAxisSpacing: 10,
                   ),
                   itemCount: AppConstants.interestCategories.length,
                   itemBuilder: (context, index) {
                     final cat = AppConstants.interestCategories[index];
-                    final isSelected = _selectedInterests.contains(cat['id']);
+                    final isSelected = _selected.contains(cat['id']);
+                    final color = Color(cat['color'] as int);
                     return InkWell(
                       onTap: () {
                         setState(() {
                           if (isSelected) {
-                            _selectedInterests.remove(cat['id']);
+                            _selected.remove(cat['id']);
                           } else {
-                            _selectedInterests.add(cat['id'] as String);
+                            _selected.add(cat['id'] as String);
                           }
                         });
                       },
-                      borderRadius: BorderRadius.circular(12),
-                      child: Container(
+                      borderRadius: BorderRadius.circular(14),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
                         decoration: BoxDecoration(
-                          color: isSelected
-                              ? Color(cat['color'] as int).withValues(alpha: 0.15)
-                              : Colors.white.withValues(alpha: 0.05),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: isSelected
-                                ? Color(cat['color'] as int)
-                                : Colors.white.withValues(alpha: 0.1),
-                          ),
+                          color: isSelected ? color.withValues(alpha: 0.12) : Colors.white.withValues(alpha: 0.04),
+                          borderRadius: BorderRadius.circular(14),
+                          border: Border.all(color: isSelected ? color : AppColors.darkDivider),
                         ),
                         child: Center(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(cat['icon'] as String, style: const TextStyle(fontSize: 22)),
-                              const SizedBox(height: 4),
-                              Text(
-                                cat['name'] as String,
-                                style: TextStyle(
-                                  color: isSelected
-                                      ? Color(cat['color'] as int)
-                                      : Colors.white70,
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 12,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ],
+                          child: Text(
+                            '${cat['icon']}  ${cat['name']}',
+                            style: TextStyle(fontWeight: FontWeight.w700, color: isSelected ? color : AppColors.grey300),
                           ),
                         ),
                       ),
@@ -240,117 +220,82 @@ class _InterestPickerDialogState extends State<InterestPickerDialog> {
                   },
                 ),
               ),
-            ),
-            const SizedBox(height: 24),
-            Row(
-              children: [
-                Expanded(
-                  child: TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
-                  ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _selected.length >= 3 ? () => Navigator.of(context).pop(_selected) : null,
+                  child: const Text('Done'),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: KGradientButton(
-                    text: 'Save',
-                    onPressed: () {
-                      widget.onSaved(_selectedInterests);
-                      Navigator.pop(context);
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
 
-class CommuteDurationDialog extends StatefulWidget {
-  final double initialDuration;
-  final Function(double) onSaved;
-
-  const CommuteDurationDialog({
-    super.key,
-    required this.initialDuration,
-    required this.onSaved,
-  });
+class _CommuteDurationSheet extends StatefulWidget {
+  final double initial;
+  const _CommuteDurationSheet({required this.initial});
 
   @override
-  State<CommuteDurationDialog> createState() => _CommuteDurationDialogState();
+  State<_CommuteDurationSheet> createState() => _CommuteDurationSheetState();
 }
 
-class _CommuteDurationDialogState extends State<CommuteDurationDialog> {
-  late double _duration;
+class _CommuteDurationSheetState extends State<_CommuteDurationSheet> {
+  late double _value;
 
   @override
   void initState() {
     super.initState();
-    _duration = widget.initialDuration;
+    _value = widget.initial;
   }
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      backgroundColor: const Color(0xFF1A1E24),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-      title: const Text(
-        'Commute Duration 🚇',
-        style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800),
-      ),
-      content: Column(
+    return Padding(
+      padding: const EdgeInsets.all(20),
+      child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          Container(width: 40, height: 4, decoration: BoxDecoration(color: AppColors.grey700, borderRadius: BorderRadius.circular(2))),
+          const SizedBox(height: 20),
+          Text('Commute Duration', style: AppTextStyles.headlineLarge),
+          const SizedBox(height: 32),
           Text(
-            '${_duration.round()} min',
-            style: const TextStyle(
-              color: AppColors.primary,
-              fontSize: 32,
-              fontWeight: FontWeight.w800,
-            ),
+            '${_value.round()}',
+            style: AppTextStyles.streakCount.copyWith(color: AppColors.accent, fontSize: 52),
           ),
-          const SizedBox(height: 24),
+          Text('minutes', style: AppTextStyles.overline.copyWith(color: AppColors.grey500)),
+          const SizedBox(height: 20),
           SliderTheme(
             data: SliderThemeData(
               activeTrackColor: AppColors.primary,
-              inactiveTrackColor: Colors.white.withValues(alpha: 0.15),
+              inactiveTrackColor: AppColors.darkDivider,
               thumbColor: AppColors.primary,
               trackHeight: 4,
             ),
             child: Slider(
-              value: _duration,
+              value: _value,
               min: AppConstants.minCommuteDuration.toDouble(),
               max: AppConstants.maxCommuteDuration.toDouble(),
               divisions: 21,
-              onChanged: (val) => setState(() => _duration = val),
+              onChanged: (val) => setState(() => _value = val),
             ),
           ),
-          const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: const [
-              Text('15m', style: TextStyle(color: Colors.white38, fontSize: 12)),
-              Text('120m', style: TextStyle(color: Colors.white38, fontSize: 12)),
-            ],
+          const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(_value),
+              child: const Text('Done'),
+            ),
           ),
+          const SizedBox(height: 16),
         ],
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel', style: TextStyle(color: Colors.white54)),
-        ),
-        KGradientButton(
-          text: 'Save',
-          onPressed: () {
-            widget.onSaved(_duration);
-            Navigator.pop(context);
-          },
-        ),
-      ],
     );
   }
 }

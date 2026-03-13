@@ -1,288 +1,220 @@
+
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/widgets/shared_widgets.dart';
+import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/data/sample_data.dart';
-import '../../../../services/supabase_service.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/widgets/shared_widgets.dart';
 
-class HomeScreen extends ConsumerWidget {
+class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final user = SampleData.sampleUser;
-    final episodesAsync = ref.watch(episodeFeedProvider(null));
+    final episodes = SampleData.sampleEpisodes;
+    final reflections = SampleData.sampleReflections;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-          // App bar
+          // ── APP BAR ──
           SliverAppBar(
             floating: true,
             backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
-            title: Row(
+            toolbarHeight: 68,
+            title: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    gradient: AppColors.primaryGradient,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: const Icon(Icons.headphones, color: Colors.white, size: 18),
-                ),
-                const SizedBox(width: 10),
                 Text(
-                  'Kaan',
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w800),
+                  _getGreeting(),
+                  style: AppTextStyles.bodySmall.copyWith(color: AppColors.grey500),
+                ),
+                Row(
+                  children: [
+                    Text(
+                      user.name.split(' ').first,
+                      style: AppTextStyles.headlineLarge.copyWith(
+                        color: isDark ? Colors.white : AppColors.secondary,
+                      ),
+                    ),
+                    Text(
+                      ' 👋',
+                      style: const TextStyle(fontSize: 22),
+                    ),
+                  ],
                 ),
               ],
             ),
             actions: [
-              IconButton(
-                onPressed: () => context.push('/coins'),
-                icon: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: AppColors.gold.withValues(alpha: 0.15),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Row(
+              Container(
+                margin: const EdgeInsets.only(right: 8),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: IconButton(
+                  onPressed: () => context.push('/coins'),
+                  icon: Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Text('🪙', style: TextStyle(fontSize: 14)),
+                      const Text('🪙', style: TextStyle(fontSize: 16)),
                       const SizedBox(width: 4),
                       Text(
                         '${user.kaanCoins}',
-                        style: TextStyle(
-                          color: AppColors.gold,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 13,
-                        ),
+                        style: AppTextStyles.labelMedium.copyWith(color: AppColors.accent, fontWeight: FontWeight.w800),
                       ),
                     ],
                   ),
                 ),
               ),
-              IconButton(
-                onPressed: () => context.push('/settings'),
-                icon: const Icon(Icons.notifications_outlined),
-              ),
+              const SizedBox(width: 4),
             ],
           ),
 
-          // Greeting + Start Commute
+          // ── HERO: Start Commute ──
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    _getGreeting(),
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: isDark ? AppColors.grey400 : AppColors.grey600,
-                        ),
-                  ),
-                  Text(
-                    user.name.split(' ')[0],
-                    style: Theme.of(context).textTheme.displaySmall?.copyWith(fontWeight: FontWeight.w800),
-                  ),
-                  const SizedBox(height: 20),
+              child: _buildCommuteHero(context),
+            ).animate().fadeIn(duration: 500.ms).slideY(begin: 0.1, end: 0),
+          ),
 
-                  // Start Commute Mode button
-                  InkWell(
-                    onTap: () => context.push('/player'),
-                    borderRadius: BorderRadius.circular(20),
-                    child: Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFFFF6B35), Color(0xFFFF8F66), Color(0xFFFFAA85)],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.primary.withValues(alpha: 0.35),
-                            blurRadius: 20,
-                            offset: const Offset(0, 8),
-                          ),
-                        ],
-                      ),
+          // ── QUICK STATS ──
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: KStatCard(
+                      label: 'Streak',
+                      value: '${user.currentStreak} 🔥',
+                      icon: Icons.local_fire_department_rounded,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: KStatCard(
+                      label: 'Rank',
+                      value: user.pahalwanRank,
+                      icon: Icons.shield_rounded,
+                      color: AppColors.accent,
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: KStatCard(
+                      label: 'Cred',
+                      value: '${user.streetCredScore}',
+                      icon: Icons.stars_rounded,
+                      color: AppColors.jade,
+                    ),
+                  ),
+                ],
+              ),
+            ).animate().fadeIn(delay: 200.ms, duration: 500.ms),
+          ),
+
+          // ── TRENDING ──
+          SliverToBoxAdapter(
+            child: KSectionHeader(
+              title: 'Trending Now',
+              actionText: 'See all',
+              onAction: () => context.go('/discover'),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: SizedBox(
+              height: 180,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                itemCount: episodes.length,
+                itemBuilder: (context, index) {
+                  final ep = episodes[index];
+                  return Container(
+                    width: 280,
+                    margin: const EdgeInsets.only(right: 12),
+                    child: KCard(
+                      onTap: () => context.push('/player'),
+                      padding: const EdgeInsets.all(16),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Row(
                             children: [
-                              const Icon(Icons.play_circle_filled, color: Colors.white, size: 48),
-                              const SizedBox(width: 16),
+                              Container(
+                                width: 44,
+                                height: 44,
+                                decoration: BoxDecoration(
+                                  gradient: AppColors.primaryGradient,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Icon(Icons.headphones_rounded, color: Colors.white, size: 22),
+                              ),
+                              const SizedBox(width: 12),
                               Expanded(
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Text(
-                                      'Start Commute Mode',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.w800,
+                                    Text(
+                                      ep.category,
+                                      style: AppTextStyles.overline.copyWith(
+                                        color: AppColors.primary,
                                       ),
                                     ),
-                                    const SizedBox(height: 4),
                                     Text(
-                                      '${user.commuteDurationMin} min mix ready • ${episodesAsync.value?.length ?? 0} clips',
-                                      style: TextStyle(
-                                        color: Colors.white.withValues(alpha: 0.8),
-                                        fontSize: 13,
-                                      ),
+                                      ep.podcastName,
+                                      style: AppTextStyles.caption,
+                                      maxLines: 1,
                                     ),
                                   ],
                                 ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 16),
-                          // Quick preview chips
-                          Wrap(
-                            spacing: 8,
-                            children: ['🎯 AI Curated', '🏏 Cricket', '💻 Tech', '😂 Comedy']
-                                .map((tag) => Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                      decoration: BoxDecoration(
-                                        color: Colors.white.withValues(alpha: 0.2),
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                      child: Text(
-                                        tag,
-                                        style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600),
-                                      ),
-                                    ))
-                                .toList(),
+                          Text(
+                            ep.title,
+                            style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          Row(
+                            children: [
+                              Icon(Icons.access_time_rounded, size: 12, color: AppColors.grey500),
+                              const SizedBox(width: 4),
+                              Text(ep.formattedDuration, style: AppTextStyles.caption),
+                              const Spacer(),
+                              Icon(Icons.bookmark_rounded, size: 12, color: AppColors.accent),
+                              const SizedBox(width: 4),
+                              Text('${ep.saveCount}', style: AppTextStyles.caption.copyWith(color: AppColors.accent)),
+                            ],
                           ),
                         ],
                       ),
                     ),
-                  ),
-                ],
+                  ).animate().fadeIn(delay: (300 + index * 100).ms, duration: 400.ms);
+                },
               ),
             ),
           ),
 
-          // Quick Stats
+          // ── TODAY'S MIX ──
+          SliverToBoxAdapter(
+            child: KSectionHeader(title: 'Today\'s Mix', actionText: 'Refresh'),
+          ),
           SliverToBoxAdapter(
             child: Padding(
-              padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: KStatCard(
-                      label: 'Day Streak',
-                      value: '${user.currentStreak} 🔥',
-                      icon: Icons.local_fire_department,
-                      color: AppColors.primary,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: KStatCard(
-                      label: 'Rank',
-                      value: user.pahalwanRank,
-                      icon: Icons.emoji_events,
-                      color: AppColors.gold,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: KStatCard(
-                      label: 'Street Cred',
-                      value: '${user.streetCredScore}',
-                      icon: Icons.stars,
-                      color: AppColors.accent,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          // Trending in Your City
-          SliverToBoxAdapter(
-            child: Column(
-              children: [
-                const SizedBox(height: 24),
-                KSectionHeader(
-                  title: 'Trending in Mumbai 🏙️',
-                  actionText: 'See all',
-                  onAction: () => context.push('/community'),
-                ),
-                SizedBox(
-                  height: 110,
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    itemCount: SampleData.cityTrending.length,
-                    itemBuilder: (context, index) {
-                      final item = SampleData.cityTrending[index];
-                      return Container(
-                        width: 160,
-                        margin: const EdgeInsets.symmetric(horizontal: 4),
-                        child: KCard(
-                          padding: const EdgeInsets.all(14),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                '📍 ${item['city']}',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: isDark ? AppColors.grey400 : AppColors.grey600,
-                                ),
-                              ),
-                              const SizedBox(height: 6),
-                              Text(
-                                item['topic'] as String,
-                                style: Theme.of(context).textTheme.titleSmall,
-                                maxLines: 2,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              const Spacer(),
-                              Text(
-                                '${item['listeners']} listening',
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: AppColors.accent,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          SliverToBoxAdapter(
-            child: KSectionHeader(
-              title: 'Today\'s Mix 🎧',
-              actionText: 'View all',
-              onAction: () {},
-            ),
-          ),
-          episodesAsync.when(
-            data: (episodes) => SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (context, index) {
-                  final ep = episodes[index];
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                children: episodes.take(3).map((ep) {
                   return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                    padding: const EdgeInsets.only(bottom: 10),
                     child: KEpisodeCard(
                       title: ep.title,
                       podcastName: ep.podcastName,
@@ -293,115 +225,78 @@ class HomeScreen extends ConsumerWidget {
                       onPlay: () => context.push('/player'),
                     ),
                   );
-                },
-                childCount: episodes.length,
+                }).toList(),
               ),
-            ),
-            loading: () => const SliverToBoxAdapter(
-              child: Center(child: CircularProgressIndicator()),
-            ),
-            error: (err, stack) => SliverToBoxAdapter(
-              child: Center(child: Text('Error loading feed: $err')),
             ),
           ),
 
-          // Chai Pe Charcha section
+          // ── CHAI PE CHARCHA ──
           SliverToBoxAdapter(
-            child: Column(
-              children: [
-                KSectionHeader(
-                  title: 'Chai Pe Charcha ☕',
-                  actionText: 'Record yours',
-                  onAction: () => context.push('/record-reflection'),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: Column(
-                    children: SampleData.sampleReflections.take(3).map((ref) {
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: KCard(
-                          onTap: () => context.push('/reflections'),
-                          padding: const EdgeInsets.all(14),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+            child: KSectionHeader(
+              title: '☕ Chai Pe Charcha',
+              actionText: 'View all',
+              onAction: () => context.push('/reflections'),
+            ),
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                children: reflections.take(2).map((ref) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: KCard(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
                             children: [
-                              Row(
-                                children: [
-                                  CircleAvatar(
-                                    radius: 18,
-                                    backgroundColor: AppColors.primary.withValues(alpha: 0.2),
-                                    child: Text(
-                                      ref.userName[0],
-                                      style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 10),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          ref.userName,
-                                          style: Theme.of(context).textTheme.titleSmall,
-                                        ),
-                                        Text(
-                                          '${ref.city} • ${_timeAgo(ref.createdAt)}',
-                                          style: Theme.of(context).textTheme.bodySmall,
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.accent.withValues(alpha: 0.15),
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Row(
-                                      children: [
-                                        const Icon(Icons.arrow_upward, size: 14, color: AppColors.accent),
-                                        const SizedBox(width: 2),
-                                        Text(
-                                          '${ref.upvotes}',
-                                          style: const TextStyle(color: AppColors.accent, fontWeight: FontWeight.w700, fontSize: 12),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ],
+                              CircleAvatar(
+                                radius: 16,
+                                backgroundColor: AppColors.primary.withValues(alpha: 0.15),
+                                child: Text(
+                                  ref.userName[0],
+                                  style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700, fontSize: 13),
+                                ),
                               ),
-                              const SizedBox(height: 10),
-                              Text(
-                                ref.transcript,
-                                style: Theme.of(context).textTheme.bodyMedium,
-                                maxLines: 3,
-                                overflow: TextOverflow.ellipsis,
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(ref.userName, style: Theme.of(context).textTheme.titleSmall),
+                                    Text(
+                                      '📍${ref.city}',
+                                      style: AppTextStyles.caption,
+                                    ),
+                                  ],
+                                ),
                               ),
-                              if (ref.episodeTitle != null) ...[
-                                const SizedBox(height: 8),
+                              if (ref.audioUrl != null)
                                 Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  padding: const EdgeInsets.all(6),
                                   decoration: BoxDecoration(
                                     color: AppColors.primary.withValues(alpha: 0.1),
-                                    borderRadius: BorderRadius.circular(6),
+                                    shape: BoxShape.circle,
                                   ),
-                                  child: Text(
-                                    '🎧 ${ref.episodeTitle}',
-                                    style: TextStyle(fontSize: 11, color: AppColors.primary),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
+                                  child: const Icon(Icons.play_arrow_rounded, color: AppColors.primary, size: 16),
                                 ),
-                              ],
                             ],
                           ),
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                ),
-              ],
+                          const SizedBox(height: 10),
+                          Text(
+                            ref.transcript,
+                            style: Theme.of(context).textTheme.bodySmall?.copyWith(height: 1.5),
+                            maxLines: 3,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
             ),
           ),
 
@@ -411,17 +306,116 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
-  String _getGreeting() {
-    final hour = DateTime.now().hour;
-    if (hour < 12) return 'Good morning,';
-    if (hour < 17) return 'Good afternoon,';
-    return 'Good evening,';
+  Widget _buildCommuteHero(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF1E2230), Color(0xFF252A40)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: AppColors.darkDivider.withValues(alpha: 0.5)),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.primary.withValues(alpha: 0.08),
+            blurRadius: 30,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Ready for\nyour commute?',
+                  style: AppTextStyles.headlineLarge.copyWith(color: Colors.white),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  '30 min curated session waiting',
+                  style: AppTextStyles.bodySmall.copyWith(color: AppColors.grey400),
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                  decoration: BoxDecoration(
+                    gradient: AppColors.primaryGradient,
+                    borderRadius: BorderRadius.circular(14),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withValues(alpha: 0.3),
+                        blurRadius: 16,
+                        offset: const Offset(0, 6),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 20),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Start',
+                        style: AppTextStyles.button.copyWith(color: Colors.white, fontSize: 14),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 16),
+          // Vinyl disc motif
+          Container(
+            width: 90,
+            height: 90,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: AppColors.primaryGradient,
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primary.withValues(alpha: 0.25),
+                  blurRadius: 24,
+                ),
+              ],
+            ),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Container(
+                  width: 50,
+                  height: 50,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white24, width: 1),
+                  ),
+                ),
+                Container(
+                  width: 25,
+                  height: 25,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: Colors.white30, width: 1),
+                  ),
+                ),
+                const Icon(Icons.headphones_rounded, color: Colors.white, size: 28),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
-  static String _timeAgo(DateTime dateTime) {
-    final diff = DateTime.now().difference(dateTime);
-    if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
-    if (diff.inHours < 24) return '${diff.inHours}h ago';
-    return '${diff.inDays}d ago';
+  String _getGreeting() {
+    final hour = DateTime.now().hour;
+    if (hour < 12) return 'Good Morning';
+    if (hour < 17) return 'Good Afternoon';
+    return 'Good Evening';
   }
 }

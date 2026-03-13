@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/data/sample_data.dart';
 import '../../../../core/widgets/shared_widgets.dart';
 
@@ -10,7 +12,8 @@ class DangalScreen extends StatefulWidget {
   State<DangalScreen> createState() => _DangalScreenState();
 }
 
-class _DangalScreenState extends State<DangalScreen> with SingleTickerProviderStateMixin {
+class _DangalScreenState extends State<DangalScreen>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   @override
@@ -40,9 +43,9 @@ class _DangalScreenState extends State<DangalScreen> with SingleTickerProviderSt
               background: Container(
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [Color(0xFFFF6B35), Color(0xFFFF3D00)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+                    colors: [Color(0xFF1A1530), Color(0xFF0F1117)],
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
                   ),
                 ),
                 child: SafeArea(
@@ -51,23 +54,31 @@ class _DangalScreenState extends State<DangalScreen> with SingleTickerProviderSt
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         const SizedBox(height: 20),
-                        const Text('🏆', style: TextStyle(fontSize: 40)),
-                        const SizedBox(height: 8),
-                        const Text(
-                          'Dangal',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 28,
-                            fontWeight: FontWeight.w800,
+                        // Trophy with glow
+                        Container(
+                          width: 64,
+                          height: 64,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: AppColors.goldGradient,
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.accent.withValues(alpha: 0.3),
+                                blurRadius: 24,
+                              ),
+                            ],
                           ),
+                          child: const Center(child: Text('🏆', style: TextStyle(fontSize: 28))),
+                        ).animate().scale(begin: const Offset(0.6, 0.6), duration: 600.ms, curve: Curves.elasticOut),
+                        const SizedBox(height: 12),
+                        Text(
+                          'Dangal',
+                          style: AppTextStyles.displaySmall.copyWith(color: Colors.white),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           'Weekly Listening Wars',
-                          style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.8),
-                            fontSize: 14,
-                          ),
+                          style: AppTextStyles.bodySmall.copyWith(color: AppColors.grey500),
                         ),
                       ],
                     ),
@@ -82,10 +93,12 @@ class _DangalScreenState extends State<DangalScreen> with SingleTickerProviderSt
                   constraints: const BoxConstraints(maxWidth: 600),
                   child: TabBar(
                     controller: _tabController,
-                    indicatorColor: AppColors.primary,
+                    indicatorColor: AppColors.accent,
+                    indicatorWeight: 3,
+                    indicatorSize: TabBarIndicatorSize.label,
                     labelColor: isDark ? Colors.white : AppColors.secondary,
                     unselectedLabelColor: AppColors.grey500,
-                    indicatorWeight: 3,
+                    labelStyle: AppTextStyles.labelLarge,
                     tabs: const [
                       Tab(text: '🏙️ City'),
                       Tab(text: '🏢 Office'),
@@ -128,25 +141,29 @@ class _DangalScreenState extends State<DangalScreen> with SingleTickerProviderSt
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        // 2nd place
                         Expanded(child: _PodiumCard(entry: entries[1], medal: '🥈', height: 120)),
                         const SizedBox(width: 8),
-                        // 1st place
                         Expanded(child: _PodiumCard(entry: entries[0], medal: '🥇', height: 150)),
                         const SizedBox(width: 8),
-                        // 3rd place
                         Expanded(child: _PodiumCard(entry: entries[2], medal: '🥉', height: 100)),
                       ],
                     ),
-                  ),
+                  ).animate().fadeIn(duration: 600.ms),
 
                 // Current user highlight
                 Container(
                   margin: const EdgeInsets.only(bottom: 16),
-                  padding: const EdgeInsets.all(14),
+                  padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     gradient: AppColors.primaryGradient,
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withValues(alpha: 0.3),
+                        blurRadius: 20,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
                   ),
                   child: Row(
                     children: [
@@ -162,29 +179,29 @@ class _DangalScreenState extends State<DangalScreen> with SingleTickerProviderSt
                             ),
                             Text(
                               '${SampleData.sampleUser.pahalwanRank} • ${SampleData.sampleUser.totalListeningMinutes} min this week',
-                              style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 12),
+                              style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 12),
                             ),
                           ],
                         ),
                       ),
                       Column(
                         children: [
-                          const Text('Street Cred', style: TextStyle(color: Colors.white70, fontSize: 10)),
+                          Text('Street Cred', style: TextStyle(color: Colors.white70, fontSize: 10)),
                           Text(
                             '${SampleData.sampleUser.streetCredScore}',
-                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 20),
+                            style: AppTextStyles.headlineMedium.copyWith(color: Colors.white),
                           ),
                         ],
                       ),
                     ],
                   ),
-                ),
+                ).animate().fadeIn(delay: 200.ms, duration: 500.ms),
 
                 // Remaining entries
-                ...entries.skip(3).map((entry) => Padding(
+                ...entries.skip(3).toList().asMap().entries.map((e) => Padding(
                       padding: const EdgeInsets.only(bottom: 8),
-                      child: _LeaderboardRow(entry: entry),
-                    )),
+                      child: _LeaderboardRow(entry: e.value),
+                    ).animate().fadeIn(delay: (300 + e.key * 80).ms, duration: 400.ms)),
 
                 // Challenge button
                 const SizedBox(height: 16),
@@ -215,12 +232,21 @@ class _PodiumCard extends StatelessWidget {
       children: [
         Text(medal, style: const TextStyle(fontSize: 28)),
         const SizedBox(height: 4),
-        CircleAvatar(
-          radius: 24,
-          backgroundColor: AppColors.primary.withValues(alpha: 0.2),
-          child: Text(
-            entry.userName[0],
-            style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700, fontSize: 18),
+        Container(
+          width: 48,
+          height: 48,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: AppColors.primaryGradient,
+            boxShadow: [
+              BoxShadow(color: AppColors.primary.withValues(alpha: 0.2), blurRadius: 12),
+            ],
+          ),
+          child: Center(
+            child: Text(
+              entry.userName[0],
+              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 18),
+            ),
           ),
         ),
         const SizedBox(height: 6),
@@ -240,23 +266,19 @@ class _PodiumCard extends StatelessWidget {
           height: height,
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [AppColors.primary.withValues(alpha: 0.3), AppColors.primary.withValues(alpha: 0.1)],
+              colors: [AppColors.primary.withValues(alpha: 0.25), AppColors.primary.withValues(alpha: 0.05)],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
             ),
             borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(12),
-              topRight: Radius.circular(12),
+              topLeft: Radius.circular(14),
+              topRight: Radius.circular(14),
             ),
           ),
           child: Center(
             child: Text(
               entry.pahalwanRank,
-              style: TextStyle(
-                color: AppColors.primary,
-                fontWeight: FontWeight.w700,
-                fontSize: 11,
-              ),
+              style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700, fontSize: 11),
             ),
           ),
         ),
@@ -267,7 +289,6 @@ class _PodiumCard extends StatelessWidget {
 
 class _LeaderboardRow extends StatelessWidget {
   final dynamic entry;
-
   const _LeaderboardRow({required this.entry});
 
   @override
@@ -290,11 +311,11 @@ class _LeaderboardRow extends StatelessWidget {
             radius: 18,
             backgroundColor: entry.isCurrentUser
                 ? AppColors.primary.withValues(alpha: 0.2)
-                : AppColors.grey200.withValues(alpha: 0.3),
+                : AppColors.darkCard,
             child: Text(
               entry.userName[0],
               style: TextStyle(
-                color: entry.isCurrentUser ? AppColors.primary : AppColors.grey600,
+                color: entry.isCurrentUser ? AppColors.primary : AppColors.grey400,
                 fontWeight: FontWeight.w700,
               ),
             ),
@@ -311,10 +332,7 @@ class _LeaderboardRow extends StatelessWidget {
                     color: entry.isCurrentUser ? AppColors.primary : null,
                   ),
                 ),
-                Text(
-                  entry.pahalwanRank,
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
+                Text(entry.pahalwanRank, style: Theme.of(context).textTheme.bodySmall),
               ],
             ),
           ),

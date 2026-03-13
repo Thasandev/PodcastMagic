@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/widgets/shared_widgets.dart';
-import '../../../../core/data/sample_data.dart';
+import '../../../../core/theme/app_text_styles.dart';
+
 
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
@@ -11,15 +12,8 @@ class EditProfileScreen extends StatefulWidget {
 }
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
-  late TextEditingController _nameController;
-  late TextEditingController _bioController;
-
-  @override
-  void initState() {
-    super.initState();
-    _nameController = TextEditingController(text: SampleData.sampleUser.name);
-    _bioController = TextEditingController(text: 'Commute learner | Tech enthusiast');
-  }
+  final _nameController = TextEditingController(text: 'Arjun Mehra');
+  final _bioController = TextEditingController(text: 'Podcast junkie. Learning while commuting 🚇');
 
   @override
   void dispose() {
@@ -31,80 +25,132 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Edit Profile')),
+      appBar: AppBar(
+        title: const Text('Edit Profile'),
+        actions: [
+          TextButton(
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Profile saved ✓'), backgroundColor: AppColors.darkCard),
+              );
+              context.pop();
+            },
+            child: Text('Save', style: AppTextStyles.labelLarge.copyWith(color: AppColors.primary)),
+          ),
+        ],
+      ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(20),
         child: Column(
           children: [
-            Stack(
-              children: [
-                CircleAvatar(
-                  radius: 50,
-                  backgroundColor: AppColors.primary.withValues(alpha: 0.1),
-                  child: const Text('👤', style: TextStyle(fontSize: 40)),
-                ),
-                Positioned(
-                  bottom: 0,
-                  right: 0,
-                  child: Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: const BoxDecoration(
-                      color: AppColors.primary,
+            // ── Avatar ──
+            Center(
+              child: Stack(
+                children: [
+                  Container(
+                    width: 100,
+                    height: 100,
+                    decoration: BoxDecoration(
                       shape: BoxShape.circle,
+                      gradient: AppColors.primaryGradient,
+                      boxShadow: [
+                        BoxShadow(color: AppColors.primary.withValues(alpha: 0.3), blurRadius: 20),
+                      ],
                     ),
-                    child: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
+                    padding: const EdgeInsets.all(3),
+                    child: Container(
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: AppColors.darkBackground,
+                      ),
+                      child: Center(
+                        child: Text(
+                          'A',
+                          style: AppTextStyles.displayMedium.copyWith(color: Colors.white),
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-              ],
+                  Positioned(
+                    bottom: 0,
+                    right: 0,
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: AppColors.darkCard,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: AppColors.darkDivider),
+                      ),
+                      child: const Icon(Icons.camera_alt_rounded, color: AppColors.primary, size: 18),
+                    ),
+                  ),
+                ],
+              ),
             ),
-            const SizedBox(height: 32),
-            _buildTextField('Full Name', _nameController),
+
+            const SizedBox(height: 36),
+
+            // ── Name field ──
+            _FormField(
+              label: 'Display Name',
+              controller: _nameController,
+              icon: Icons.person_outlined,
+            ),
+
             const SizedBox(height: 16),
-            _buildTextField('Bio', _bioController, maxLines: 3),
-            const SizedBox(height: 40),
-            KGradientButton(
-              text: 'Save Changes',
-              onPressed: () {
-                // Mock save — UserProfile is immutable; real save would go via a provider
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Profile updated successfully!')),
-                );
-              },
+
+            // ── Bio field ──
+            _FormField(
+              label: 'Bio',
+              controller: _bioController,
+              icon: Icons.edit_outlined,
+              maxLines: 3,
             ),
+
+            const SizedBox(height: 24),
           ],
         ),
       ),
     );
   }
+}
 
-  Widget _buildTextField(String label, TextEditingController controller, {int maxLines = 1}) {
+class _FormField extends StatelessWidget {
+  final String label;
+  final TextEditingController controller;
+  final IconData icon;
+  final int maxLines;
+
+  const _FormField({
+    required this.label,
+    required this.controller,
+    required this.icon,
+    this.maxLines = 1,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: const TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w600),
-        ),
+        Text(label, style: AppTextStyles.overline.copyWith(color: AppColors.grey500)),
         const SizedBox(height: 8),
-        TextField(
-          controller: controller,
-          maxLines: maxLines,
-          style: const TextStyle(color: Colors.white),
-          decoration: InputDecoration(
-            filled: true,
-            fillColor: Colors.white.withValues(alpha: 0.05),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.primary),
+        Container(
+          decoration: BoxDecoration(
+            color: AppColors.darkCard,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: AppColors.darkDivider),
+          ),
+          child: TextField(
+            controller: controller,
+            maxLines: maxLines,
+            style: AppTextStyles.bodyLarge.copyWith(color: Colors.white),
+            decoration: InputDecoration(
+              prefixIcon: Icon(icon, color: AppColors.grey500, size: 20),
+              border: InputBorder.none,
+              enabledBorder: InputBorder.none,
+              focusedBorder: InputBorder.none,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
             ),
           ),
         ),

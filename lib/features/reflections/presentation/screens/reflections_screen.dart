@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/data/sample_data.dart';
 import '../../../../core/widgets/shared_widgets.dart';
 
@@ -9,163 +12,153 @@ class ReflectionsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final reflections = SampleData.sampleReflections;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('☕ Chai Pe Charcha'),
-        actions: [
-          TextButton.icon(
-            onPressed: () {},
-            icon: const Icon(Icons.filter_list, size: 18),
-            label: const Text('Filter'),
-          ),
-        ],
-      ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
-        children: [
-          // Community Wisdom Feed header
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              gradient: AppColors.accentGradient,
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.public, color: Colors.white, size: 32),
-                const SizedBox(width: 12),
-                Expanded(
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            floating: true,
+            pinned: true,
+            expandedHeight: 130,
+            backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
+            flexibleSpace: FlexibleSpaceBar(
+              background: SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Community Wisdom Feed',
-                        style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 16),
-                      ),
                       Text(
-                        'See what India is learning today',
-                        style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 12),
+                        '✍️ Reflections',
+                        style: AppTextStyles.displaySmall.copyWith(
+                          color: isDark ? Colors.white : AppColors.secondary,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Community wisdom, shared aloud',
+                        style: AppTextStyles.bodySmall.copyWith(color: AppColors.grey500),
                       ),
                     ],
                   ),
                 ),
-              ],
+              ),
             ),
           ),
-          const SizedBox(height: 16),
 
-          // Trending topics
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: ['Mumbai 🏙️', 'Delhi 🏛️', 'Bangalore 💻', 'All India 🇮🇳'].map((city) {
-              return FilterChip(
-                label: Text(city),
-                onSelected: (_) {},
-                selected: city.startsWith('All'),
-                selectedColor: AppColors.primary.withValues(alpha: 0.2),
-                checkmarkColor: AppColors.primary,
-              );
-            }).toList(),
+          // ── Trending City ──
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: ['📍 Mumbai', '📍 Delhi', '📍 Bangalore', '📍 Chennai'].map((city) {
+                  return Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: AppColors.darkCard,
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(color: AppColors.darkDivider),
+                    ),
+                    child: Text(
+                      city,
+                      style: AppTextStyles.labelMedium.copyWith(color: AppColors.grey300),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
           ),
-          const SizedBox(height: 16),
 
-          // Reflections
-          ...reflections.map((ref) => Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: KCard(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          CircleAvatar(
-                            radius: 20,
-                            backgroundColor: AppColors.primary.withValues(alpha: 0.2),
-                            child: Text(
-                              ref.userName[0],
-                              style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700, fontSize: 16),
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(ref.userName, style: Theme.of(context).textTheme.titleSmall),
-                                Text(
-                                  '📍${ref.city} • ${_timeAgo(ref.createdAt)}',
-                                  style: Theme.of(context).textTheme.bodySmall,
-                                ),
-                              ],
-                            ),
-                          ),
-                          if (ref.audioUrl != null)
+          // ── Reflections Feed ──
+          SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (context, index) {
+                final ref = reflections[index % reflections.length];
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
+                  child: KCard(
+                    padding: const EdgeInsets.all(18),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
                             Container(
-                              padding: const EdgeInsets.all(8),
+                              width: 40,
+                              height: 40,
                               decoration: BoxDecoration(
-                                color: AppColors.primary.withValues(alpha: 0.1),
                                 shape: BoxShape.circle,
+                                gradient: AppColors.primaryGradient,
                               ),
-                              child: const Icon(Icons.play_arrow, color: AppColors.primary, size: 20),
-                            ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        ref.transcript,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(height: 1.5),
-                      ),
-                      if (ref.episodeTitle != null) ...[
-                        const SizedBox(height: 10),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: AppColors.primary.withValues(alpha: 0.08),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(Icons.headphones, size: 14, color: AppColors.primary),
-                              const SizedBox(width: 4),
-                              Flexible(
+                              child: Center(
                                 child: Text(
-                                  ref.episodeTitle!,
-                                  style: const TextStyle(fontSize: 11, color: AppColors.primary, fontWeight: FontWeight.w600),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
+                                  ref.userName[0],
+                                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 16),
                                 ),
                               ),
-                            ],
-                          ),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(ref.userName, style: Theme.of(context).textTheme.titleSmall),
+                                  Text(
+                                    '📍 ${ref.city} • ${_timeAgo(ref.createdAt)}',
+                                    style: AppTextStyles.caption,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            if (ref.audioUrl != null)
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary.withValues(alpha: 0.12),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(Icons.play_arrow_rounded, color: AppColors.primary, size: 20),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 14),
+                        Text(
+                          ref.transcript,
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(height: 1.6),
+                        ),
+                        const SizedBox(height: 14),
+                        // Action bar
+                        Row(
+                          children: [
+                            _ReflectionAction(icon: Icons.arrow_upward_rounded, label: '${ref.upvotes}', color: AppColors.primary),
+                            const SizedBox(width: 16),
+                            _ReflectionAction(icon: Icons.chat_bubble_outline_rounded, label: '${ref.reactionCount}', color: AppColors.grey500),
+                            const SizedBox(width: 16),
+                            _ReflectionAction(icon: Icons.share_outlined, label: '', color: AppColors.grey500),
+                            const Spacer(),
+                            Text('🔥 ${ref.reactionCount}', style: AppTextStyles.caption),
+                          ],
                         ),
                       ],
-                      const SizedBox(height: 12),
-                      // Action bar
-                      Row(
-                        children: [
-                          _ReflectionAction(icon: Icons.arrow_upward, label: '${ref.upvotes}', color: AppColors.accent),
-                          const SizedBox(width: 16),
-                          _ReflectionAction(icon: Icons.chat_bubble_outline, label: '${ref.reactionCount}', color: AppColors.grey500),
-                          const SizedBox(width: 16),
-                          _ReflectionAction(icon: Icons.share_outlined, label: 'Share', color: AppColors.grey500),
-                          const SizedBox(width: 16),
-                          _ReflectionAction(icon: Icons.mic_outlined, label: 'React', color: AppColors.primary),
-                        ],
-                      ),
-                    ],
+                    ),
                   ),
-                ),
-              )),
+                ).animate().fadeIn(delay: (index * 80).ms, duration: 400.ms);
+              },
+              childCount: reflections.length,
+            ),
+          ),
+
+          const SliverToBoxAdapter(child: SizedBox(height: 140)),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {},
+        onPressed: () => context.push('/recordReflection'),
         backgroundColor: AppColors.primary,
-        icon: const Icon(Icons.mic, color: Colors.white),
-        label: const Text('Record Reflection', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600)),
+        icon: const Icon(Icons.mic_rounded, color: Colors.white),
+        label: const Text('Record', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
       ),
     );
   }
@@ -187,19 +180,14 @@ class _ReflectionAction extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: () {},
-      borderRadius: BorderRadius.circular(8),
-      child: Padding(
-        padding: const EdgeInsets.all(4),
-        child: Row(
-          children: [
-            Icon(icon, size: 18, color: color),
-            const SizedBox(width: 4),
-            Text(label, style: TextStyle(fontSize: 12, color: color, fontWeight: FontWeight.w600)),
-          ],
-        ),
-      ),
+    return Row(
+      children: [
+        Icon(icon, size: 18, color: color),
+        if (label.isNotEmpty) ...[
+          const SizedBox(width: 4),
+          Text(label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: color)),
+        ],
+      ],
     );
   }
 }

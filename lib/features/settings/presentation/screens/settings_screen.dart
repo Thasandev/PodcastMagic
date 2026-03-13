@@ -1,314 +1,189 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/widgets/pickers.dart';
-import '../../../../services/supabase_service.dart';
-import '../../../auth/data/repositories/auth_repository.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../../../../core/theme/app_text_styles.dart';
+import '../../../../core/widgets/shared_widgets.dart';
 
-import '../../../auth/data/repositories/auth_repository.dart';
-
-class SettingsScreen extends ConsumerStatefulWidget {
+class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
 
   @override
-  ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
+  State<SettingsScreen> createState() => _SettingsScreenState();
 }
 
-class _SettingsScreenState extends ConsumerState<SettingsScreen> {
-  // Playback & App preferences
+class _SettingsScreenState extends State<SettingsScreen> {
   bool _darkMode = true;
-  bool _offlineMode = false;
-  bool _notificationsEnabled = true;
-  bool _streakReminders = true;
-  bool _friendActivity = true;
+  bool _autoDownload = false;
+  bool _pushNotifications = true;
+  bool _streakReminder = true;
   double _playbackSpeed = 1.0;
-  String _audioQuality = 'High';
-
-  @override
-  void initState() {
-    super.initState();
-    _loadPreferences();
-  }
-
-  Future<void> _loadPreferences() async {
-    final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _darkMode = prefs.getBool('settings_dark_mode') ?? true;
-      _offlineMode = prefs.getBool('settings_offline_mode') ?? false;
-      _notificationsEnabled = prefs.getBool('settings_notifications') ?? true;
-      _streakReminders = prefs.getBool('settings_streak_reminders') ?? true;
-      _friendActivity = prefs.getBool('settings_friend_activity') ?? true;
-      _playbackSpeed = prefs.getDouble('settings_playback_speed') ?? 1.0;
-      _audioQuality = prefs.getString('settings_audio_quality') ?? 'High';
-    });
-  }
-
-  Future<void> _savePreference<T>(String key, T value) async {
-    final prefs = await SharedPreferences.getInstance();
-    if (value is bool) {
-      await prefs.setBool(key, value);
-    } else if (value is double) {
-      await prefs.setDouble(key, value);
-    } else if (value is String) {
-      await prefs.setString(key, value);
-    }
-  }
-
+  String _audioQuality = 'high';
 
   @override
   Widget build(BuildContext context) {
-    final profileAsync = ref.watch(userProfileProvider);
-
     return Scaffold(
       appBar: AppBar(title: const Text('Settings')),
-      body: profileAsync.when(
-        data: (profile) {
-          if (profile == null) return const Center(child: Text('No profile found.'));
-          
-          final selectedLanguages = profile.languages.toSet();
-          final selectedInterests = profile.interests.toSet();
-          final commuteDuration = profile.commuteDurationMin.toDouble();
-
-          return ListView(
+      body: ListView(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 120),
         children: [
-          // Account
-          const _SectionHeader(title: 'Account'),
+          // ── Account ──
+          _SectionLabel('ACCOUNT'),
           _SettingsTile(
-            icon: Icons.person, 
-            title: 'Edit Profile', 
-            onTap: () => context.push('/edit-profile'),
+            icon: Icons.person_outlined,
+            title: 'Edit Profile',
+            subtitle: 'Name, bio, avatar',
+            onTap: () => context.push('/editProfile'),
           ),
           _SettingsTile(
-            icon: Icons.language, 
-            title: 'Language Preferences', 
-            subtitle: selectedLanguages.join(', ').toUpperCase(), 
-            onTap: () => _showLanguagePicker(selectedLanguages),
+            icon: Icons.language_rounded,
+            title: 'Languages',
+            subtitle: 'English, Hindi',
+            onTap: () {},
           ),
           _SettingsTile(
-            icon: Icons.interests, 
-            title: 'Interest Topics', 
-            subtitle: '${selectedInterests.length} topics selected', 
-            onTap: () => _showInterestPicker(selectedInterests),
-          ),
-          _SettingsTile(
-            icon: Icons.commute, 
-            title: 'Commute Duration', 
-            subtitle: '${commuteDuration.round()} minutes', 
-            onTap: () => _showCommutePicker(commuteDuration),
+            icon: Icons.category_outlined,
+            title: 'Interests',
+            subtitle: 'Technology, Business, AI',
+            onTap: () {},
           ),
 
-          // Playback
-          const _SectionHeader(title: 'Playback'),
-          ListTile(
-            leading: const Icon(Icons.speed, color: AppColors.primary),
-            title: const Text('Default Playback Speed'),
-            subtitle: Text('${_playbackSpeed}x'),
-            trailing: DropdownButton<double>(
-              value: _playbackSpeed,
-              dropdownColor: const Color(0xFF252A32),
-              items: [0.5, 0.75, 1.0, 1.25, 1.5, 2.0, 3.0]
-                  .map((s) => DropdownMenuItem(value: s, child: Text('${s}x', style: const TextStyle(color: Colors.white))))
-                  .toList(),
-              onChanged: (val) {
-                if (val != null) {
-                  setState(() => _playbackSpeed = val);
-                  _savePreference('settings_playback_speed', val);
-                }
-              },
-            ),
-          ),
-          ListTile(
-            leading: const Icon(Icons.high_quality, color: AppColors.primary),
-            title: const Text('Audio Quality'),
-            subtitle: Text(_audioQuality),
-            trailing: DropdownButton<String>(
-              value: _audioQuality,
-              dropdownColor: const Color(0xFF252A32),
-              items: ['Low (32kbps)', 'Medium (64kbps)', 'High (128kbps)']
-                  .map((q) => DropdownMenuItem(
-                        value: q.split(' ').first, 
-                        child: Text(q, style: const TextStyle(color: Colors.white)),
-                      ))
-                  .toList(),
-              onChanged: (val) {
-                if (val != null) {
-                  setState(() => _audioQuality = val);
-                  _savePreference('settings_audio_quality', val);
-                }
-              },
-            ),
-          ),
-          SwitchListTile(
-            secondary: const Icon(Icons.download_for_offline, color: AppColors.primary),
-            title: const Text('Offline Mode'),
-            subtitle: const Text('Download content for commute'),
-            value: _offlineMode,
+          const SizedBox(height: 20),
+
+          // ── Playback ──
+          _SectionLabel('PLAYBACK'),
+          _DropdownTile(
+            icon: Icons.speed_rounded,
+            title: 'Playback Speed',
+            value: '${_playbackSpeed}x',
+            items: ['0.5x', '0.75x', '1.0x', '1.25x', '1.5x', '2.0x', '3.0x'],
             onChanged: (val) {
-              setState(() => _offlineMode = val);
-              _savePreference('settings_offline_mode', val);
+              setState(() {
+                _playbackSpeed = double.parse(val.replaceAll('x', ''));
+              });
             },
           ),
+          _DropdownTile(
+            icon: Icons.high_quality_rounded,
+            title: 'Audio Quality',
+            value: _audioQuality == 'high' ? 'High' : (_audioQuality == 'medium' ? 'Medium' : 'Low'),
+            items: ['High', 'Medium', 'Low'],
+            onChanged: (val) => setState(() => _audioQuality = val.toLowerCase()),
+          ),
+          _SwitchTile(
+            icon: Icons.download_rounded,
+            title: 'Auto Download',
+            subtitle: 'Download on Wi-Fi',
+            value: _autoDownload,
+            onChanged: (val) => setState(() => _autoDownload = val),
+          ),
 
-          // Appearance
-          const _SectionHeader(title: 'Appearance'),
-          SwitchListTile(
-            secondary: const Icon(Icons.dark_mode, color: AppColors.primary),
-            title: const Text('Dark Mode'),
+          const SizedBox(height: 20),
+
+          // ── Appearance ──
+          _SectionLabel('APPEARANCE'),
+          _SwitchTile(
+            icon: Icons.dark_mode_rounded,
+            title: 'Dark Mode',
+            subtitle: 'Optimized for AMOLED',
             value: _darkMode,
-            onChanged: (val) {
-              setState(() => _darkMode = val);
-              _savePreference('settings_dark_mode', val);
-            },
+            onChanged: (val) => setState(() => _darkMode = val),
           ),
 
-          // Notifications
-          const _SectionHeader(title: 'Notifications'),
-          SwitchListTile(
-            secondary: const Icon(Icons.notifications, color: AppColors.primary),
-            title: const Text('Push Notifications'),
-            value: _notificationsEnabled,
-            onChanged: (val) {
-              setState(() => _notificationsEnabled = val);
-              _savePreference('settings_notifications', val);
-            },
+          const SizedBox(height: 20),
+
+          // ── Notifications ──
+          _SectionLabel('NOTIFICATIONS'),
+          _SwitchTile(
+            icon: Icons.notifications_outlined,
+            title: 'Push Notifications',
+            subtitle: 'New episodes, updates',
+            value: _pushNotifications,
+            onChanged: (val) => setState(() => _pushNotifications = val),
           ),
-          SwitchListTile(
-            secondary: const Icon(Icons.local_fire_department, color: AppColors.primary),
-            title: const Text('Streak Reminders'),
-            subtitle: const Text('Remind before streak breaks'),
-            value: _streakReminders,
-            onChanged: (val) {
-              setState(() => _streakReminders = val);
-              _savePreference('settings_streak_reminders', val);
-            },
-          ),
-          SwitchListTile(
-            secondary: const Icon(Icons.people, color: AppColors.primary),
-            title: const Text('Friend Activity'),
-            subtitle: const Text('When friends save or reflect'),
-            value: _friendActivity,
-            onChanged: (val) {
-              setState(() => _friendActivity = val);
-              _savePreference('settings_friend_activity', val);
-            },
+          _SwitchTile(
+            icon: Icons.local_fire_department_rounded,
+            title: 'Streak Reminder',
+            subtitle: 'Daily at 8 PM',
+            value: _streakReminder,
+            onChanged: (val) => setState(() => _streakReminder = val),
           ),
 
-          // Integrations
-          const _SectionHeader(title: 'Integrations'),
-          _SettingsTile(icon: Icons.note, title: 'Connect Notion', subtitle: 'Export saves to Notion', onTap: () => _mockConnect('Notion')),
-          _SettingsTile(icon: Icons.book, title: 'Connect Readwise', onTap: () => _mockConnect('Readwise')),
-          _SettingsTile(icon: Icons.source, title: 'Connect Obsidian', onTap: () => _mockConnect('Obsidian')),
+          const SizedBox(height: 20),
 
-          // About
-          const _SectionHeader(title: 'About'),
-          _SettingsTile(icon: Icons.privacy_tip, title: 'Privacy Policy', onTap: () {}),
-          _SettingsTile(icon: Icons.description, title: 'Terms of Service', onTap: () {}),
-          _SettingsTile(icon: Icons.info, title: 'App Version', subtitle: '1.0.0', onTap: () {}),
+          // ── Integrations ──
+          _SectionLabel('INTEGRATIONS'),
           _SettingsTile(
-            icon: Icons.logout, 
-            title: 'Log Out', 
-            titleColor: AppColors.error, 
-            onTap: () => _handleLogout(),
+            icon: Icons.edit_note_rounded,
+            title: 'Notion',
+            subtitle: 'Sync notes & highlights',
+            trailing: _ConnectedBadge(connected: false),
+            onTap: () {},
+          ),
+          _SettingsTile(
+            icon: Icons.psychology_rounded,
+            title: 'Readwise',
+            subtitle: 'Export quotes & clips',
+            trailing: _ConnectedBadge(connected: true),
+            onTap: () {},
           ),
 
-          const SizedBox(height: 140),
-        ],
-      );
-      },
-      loading: () => const Center(child: CircularProgressIndicator()),
-      error: (e, st) => Center(child: Text('Error loading profile: $e')),
-      ),
-    );
-  }
+          const SizedBox(height: 20),
 
-  void _showLanguagePicker(Set<String> initialLanguages) {
-    showDialog(
-      context: context,
-      builder: (context) => LanguagePickerDialog(
-        initialLanguages: initialLanguages,
-        onSaved: (langs) async {
-          await ref.read(supabaseServiceProvider).updateProfile({'languages': langs.toList()});
-          ref.invalidate(userProfileProvider);
-        },
-      ),
-    );
-  }
+          // ── About ──
+          _SectionLabel('ABOUT'),
+          _SettingsTile(
+            icon: Icons.info_outlined,
+            title: 'About Kaan',
+            subtitle: 'Version 1.0.0',
+            onTap: () {},
+          ),
+          _SettingsTile(
+            icon: Icons.privacy_tip_outlined,
+            title: 'Privacy Policy',
+            onTap: () {},
+          ),
+          _SettingsTile(
+            icon: Icons.description_outlined,
+            title: 'Terms of Service',
+            onTap: () {},
+          ),
 
-  void _showInterestPicker(Set<String> initialInterests) {
-    showDialog(
-      context: context,
-      builder: (context) => InterestPickerDialog(
-        initialInterests: initialInterests,
-        onSaved: (interests) async {
-          await ref.read(supabaseServiceProvider).updateProfile({'interests': interests.toList()});
-          ref.invalidate(userProfileProvider);
-        },
-      ),
-    );
-  }
+          const SizedBox(height: 20),
 
-  void _showCommutePicker(double initialDuration) {
-    showDialog(
-      context: context,
-      builder: (context) => CommuteDurationDialog(
-        initialDuration: initialDuration,
-        onSaved: (dur) async {
-          await ref.read(supabaseServiceProvider).updateProfile({'commute_duration_min': dur.round()});
-          ref.invalidate(userProfileProvider);
-        },
-      ),
-    );
-  }
-
-  void _mockConnect(String platform) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Connecting to $platform... (Mock flow)')),
-    );
-  }
-
-  Future<void> _handleLogout() async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1E24),
-        title: const Text('Log Out', style: TextStyle(color: Colors.white)),
-        content: const Text('Are you sure you want to log out?', style: TextStyle(color: Colors.white70)),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true), 
-            child: const Text('Log Out', style: TextStyle(color: AppColors.error)),
+          // ── Danger zone ──
+          Center(
+            child: TextButton(
+              onPressed: () {},
+              child: Text(
+                'Sign Out',
+                style: AppTextStyles.labelLarge.copyWith(color: AppColors.error),
+              ),
+            ),
+          ),
+          Center(
+            child: TextButton(
+              onPressed: () {},
+              child: Text(
+                'Delete Account',
+                style: AppTextStyles.labelMedium.copyWith(color: AppColors.grey600),
+              ),
+            ),
           ),
         ],
       ),
     );
-
-    if (confirmed == true) {
-      await ref.read(authRepositoryProvider).signOut();
-      if (mounted) context.go('/login');
-    }
   }
 }
 
-class _SectionHeader extends StatelessWidget {
-  final String title;
-  const _SectionHeader({required this.title});
+class _SectionLabel extends StatelessWidget {
+  final String text;
+  const _SectionLabel(this.text);
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
-      child: Text(
-        title.toUpperCase(),
-        style: TextStyle(
-          color: AppColors.primary,
-          fontSize: 12,
-          fontWeight: FontWeight.w700,
-          letterSpacing: 1.5,
-        ),
-      ),
+      padding: const EdgeInsets.only(bottom: 8, top: 4, left: 4),
+      child: Text(text, style: AppTextStyles.overline.copyWith(color: AppColors.grey500)),
     );
   }
 }
@@ -317,19 +192,148 @@ class _SettingsTile extends StatelessWidget {
   final IconData icon;
   final String title;
   final String? subtitle;
-  final Color? titleColor;
+  final Widget? trailing;
   final VoidCallback onTap;
 
-  const _SettingsTile({required this.icon, required this.title, this.subtitle, this.titleColor, required this.onTap});
+  const _SettingsTile({required this.icon, required this.title, this.subtitle, this.trailing, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      leading: Icon(icon, color: AppColors.primary),
-      title: Text(title, style: TextStyle(color: titleColor)),
-      subtitle: subtitle != null ? Text(subtitle!) : null,
-      trailing: const Icon(Icons.chevron_right, color: AppColors.grey400),
+    return KCard(
       onTap: onTap,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: AppColors.grey400, size: 20),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: Theme.of(context).textTheme.titleSmall),
+                if (subtitle != null) Text(subtitle!, style: AppTextStyles.caption),
+              ],
+            ),
+          ),
+          trailing ?? const Icon(Icons.chevron_right_rounded, color: AppColors.grey600, size: 20),
+        ],
+      ),
+    );
+  }
+}
+
+class _SwitchTile extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String? subtitle;
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  const _SwitchTile({required this.icon, required this.title, this.subtitle, required this.value, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    return KCard(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: AppColors.grey400, size: 20),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: Theme.of(context).textTheme.titleSmall),
+                if (subtitle != null) Text(subtitle!, style: AppTextStyles.caption),
+              ],
+            ),
+          ),
+          Switch(
+            value: value,
+            onChanged: onChanged,
+            activeColor: AppColors.primary,
+            activeTrackColor: AppColors.primary.withValues(alpha: 0.3),
+            inactiveTrackColor: AppColors.darkDivider,
+            inactiveThumbColor: AppColors.grey600,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _DropdownTile extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String value;
+  final List<String> items;
+  final ValueChanged<String> onChanged;
+
+  const _DropdownTile({required this.icon, required this.title, required this.value, required this.items, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    return KCard(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, color: AppColors.grey400, size: 20),
+          ),
+          const SizedBox(width: 14),
+          Expanded(child: Text(title, style: Theme.of(context).textTheme.titleSmall)),
+          DropdownButton<String>(
+            value: value,
+            underline: const SizedBox(),
+            icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.grey500),
+            items: items.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+            onChanged: (val) => onChanged(val!),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ConnectedBadge extends StatelessWidget {
+  final bool connected;
+  const _ConnectedBadge({required this.connected});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: connected ? AppColors.success.withValues(alpha: 0.12) : AppColors.grey700,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Text(
+        connected ? 'Connected' : 'Connect',
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          color: connected ? AppColors.success : AppColors.grey400,
+        ),
+      ),
     );
   }
 }

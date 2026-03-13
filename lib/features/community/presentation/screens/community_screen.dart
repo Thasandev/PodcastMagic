@@ -1,201 +1,198 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/data/sample_data.dart';
 import '../../../../core/widgets/shared_widgets.dart';
-import '../../../../services/supabase_service.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class CommunityScreen extends ConsumerWidget {
+class CommunityScreen extends StatelessWidget {
   const CommunityScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final reflectionsAsync = ref.watch(reflectionsProvider(null));
-    final trendingAsync = ref.watch(trendingEpisodesProvider);
+  Widget build(BuildContext context) {
+
+    final episodes = SampleData.sampleEpisodes;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('🌍 Sabka Kaan'),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          // Community highlights header
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF2E4057), Color(0xFF4A5E78)],
-              ),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Community Highlights',
-                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 20),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Most-saved moments from across India',
-                  style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 13),
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    _CommunityStatChip(label: '12.5K', subtitle: 'Active today'),
-                    const SizedBox(width: 12),
-                    _CommunityStatChip(label: '3.2K', subtitle: 'Clips saved'),
-                    const SizedBox(width: 12),
-                    _CommunityStatChip(label: '890', subtitle: 'Reflections'),
-                  ],
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 20),
-
-          // Trending in cities
-          Text('🏙️ What Cities Are Learning', style: Theme.of(context).textTheme.headlineSmall),
-          const SizedBox(height: 12),
-          ...SampleData.cityTrending.map((item) => Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: KCard(
-                  padding: const EdgeInsets.all(14),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 44,
-                        height: 44,
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Center(child: Text('📍', style: TextStyle(fontSize: 20))),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(item['city'] as String, style: Theme.of(context).textTheme.titleSmall),
-                            Text(
-                              item['topic'] as String,
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(color: AppColors.primary),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Text(
-                            '${item['listeners']}',
-                            style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.accent),
-                          ),
-                          Text(
-                            'listening',
-                            style: Theme.of(context).textTheme.labelSmall,
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              )),
-
-          const SizedBox(height: 20),
-
-          // Popular saves
-          Text('🔥 Most Saved Moments', style: Theme.of(context).textTheme.headlineSmall),
-          const SizedBox(height: 12),
-          trendingAsync.when(
-            data: (episodes) => Column(
-              children: episodes.take(3).map((ep) => Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: KCard(
-                  padding: const EdgeInsets.all(14),
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            floating: true,
+            pinned: true,
+            expandedHeight: 130,
+            backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
+            flexibleSpace: FlexibleSpaceBar(
+              background: SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        children: [
-                          Container(
-                            width: 48,
-                            height: 48,
-                            decoration: BoxDecoration(
-                              gradient: AppColors.primaryGradient,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: const Icon(Icons.headphones, color: Colors.white, size: 22),
-                          ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(ep.title, style: Theme.of(context).textTheme.titleSmall, maxLines: 1, overflow: TextOverflow.ellipsis),
-                                Text(ep.podcastName, style: Theme.of(context).textTheme.bodySmall),
-                              ],
-                            ),
-                          ),
-                        ],
+                      Text(
+                        'Community',
+                        style: AppTextStyles.displaySmall.copyWith(
+                          color: isDark ? Colors.white : AppColors.secondary,
+                        ),
                       ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Icon(Icons.bookmark, size: 14, color: AppColors.accent),
-                          const SizedBox(width: 4),
-                          Text('${ep.saveCount} people saved this', style: TextStyle(color: AppColors.accent, fontSize: 12, fontWeight: FontWeight.w600)),
-                          const Spacer(),
-                          Text(ep.formattedDuration, style: Theme.of(context).textTheme.labelSmall),
-                        ],
+                      const SizedBox(height: 4),
+                      Text(
+                        'Learn together, grow together',
+                        style: AppTextStyles.bodySmall.copyWith(color: AppColors.grey500),
                       ),
                     ],
                   ),
                 ),
-              )).toList(),
+              ),
             ),
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (err, stack) => Center(child: Text('Error: $err')),
           ),
 
-          const SizedBox(height: 20),
+          // ── Community Stats ──
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: _StatChip(label: 'Listeners', value: '12.4K', gradient: AppColors.primaryGradient),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _StatChip(label: 'Reflections', value: '3.2K', gradient: AppColors.goldGradient),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: _StatChip(label: 'Cities', value: '85', gradient: AppColors.jadeGradient),
+                  ),
+                ],
+              ),
+            ).animate().fadeIn(duration: 500.ms),
+          ),
 
-          // Friend activity
-          Text('👥 Friend Activity', style: Theme.of(context).textTheme.headlineSmall),
-          const SizedBox(height: 12),
-          _FriendActivity(name: 'Priya', action: 'saved a clip from', target: 'Tech Talks India', time: '2h ago'),
-          _FriendActivity(name: 'Arjun', action: 'started a streak of', target: '15 days 🔥', time: '5h ago'),
-          _FriendActivity(name: 'Neha', action: 'shared a reflection about', target: 'Morning Habits', time: '8h ago'),
-          _FriendActivity(name: 'Karthik', action: 'reached rank', target: 'Ustaad ⚔️', time: '1d ago'),
+          // ── Trending by City ──
+          SliverToBoxAdapter(
+            child: KSectionHeader(title: '🏙️ Trending by City', actionText: 'View all'),
+          ),
+          SliverToBoxAdapter(
+            child: SizedBox(
+              height: 120,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                children: [
+                  _CityCard(city: 'Mumbai', listeners: '3.2K', emoji: '🏙️'),
+                  _CityCard(city: 'Delhi', listeners: '2.8K', emoji: '🕌'),
+                  _CityCard(city: 'Bangalore', listeners: '2.1K', emoji: '💻'),
+                  _CityCard(city: 'Chennai', listeners: '1.5K', emoji: '🛕'),
+                  _CityCard(city: 'Pune', listeners: '1.2K', emoji: '🏞️'),
+                ],
+              ),
+            ),
+          ),
 
-          const SizedBox(height: 140),
+          // ── Popular Saves ──
+          SliverToBoxAdapter(
+            child: KSectionHeader(title: '🔥 Popular Saves'),
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                children: episodes.take(3).map((ep) {
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 10),
+                    child: KEpisodeCard(
+                      title: ep.title,
+                      podcastName: ep.podcastName,
+                      duration: ep.formattedDuration,
+                      category: ep.category,
+                      saveCount: ep.saveCount,
+                      onTap: () => context.push('/player'),
+                      onPlay: () => context.push('/player'),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+          ),
+
+          // ── Friend Activity ──
+          SliverToBoxAdapter(
+            child: KSectionHeader(title: '🧑‍🤝‍🧑 Friend Activity'),
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: Column(
+                children: [
+                  _FriendActivity(name: 'Arjun Singh', action: 'saved a clip from', episode: 'AI Revolution in India', time: '2h ago'),
+                  _FriendActivity(name: 'Priya Sharma', action: 'shared a reflection on', episode: 'Startup Life', time: '3h ago'),
+                  _FriendActivity(name: 'Rahul Kumar', action: 'is listening to', episode: 'Mindfulness for Coders', time: 'Now'),
+                ],
+              ),
+            ),
+          ),
+
+          const SliverToBoxAdapter(child: SizedBox(height: 140)),
         ],
       ),
     );
   }
 }
 
-class _CommunityStatChip extends StatelessWidget {
+class _StatChip extends StatelessWidget {
   final String label;
-  final String subtitle;
+  final String value;
+  final Gradient gradient;
 
-  const _CommunityStatChip({required this.label, required this.subtitle});
+  const _StatChip({required this.label, required this.value, required this.gradient});
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(10),
-        ),
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        gradient: gradient,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        children: [
+          Text(
+            value,
+            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 18),
+          ),
+          Text(
+            label,
+            style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 11),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CityCard extends StatelessWidget {
+  final String city;
+  final String listeners;
+  final String emoji;
+
+  const _CityCard({required this.city, required this.listeners, required this.emoji});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 110,
+      margin: const EdgeInsets.only(right: 10),
+      child: KCard(
+        padding: const EdgeInsets.all(14),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(label, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 18)),
-            Text(subtitle, style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 10)),
+            Text(emoji, style: const TextStyle(fontSize: 28)),
+            const SizedBox(height: 6),
+            Text(city, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+            Text('$listeners 🎧', style: TextStyle(fontSize: 10, color: AppColors.grey500)),
           ],
         ),
       ),
@@ -206,25 +203,31 @@ class _CommunityStatChip extends StatelessWidget {
 class _FriendActivity extends StatelessWidget {
   final String name;
   final String action;
-  final String target;
+  final String episode;
   final String time;
 
-  const _FriendActivity({required this.name, required this.action, required this.target, required this.time});
+  const _FriendActivity({required this.name, required this.action, required this.episode, required this.time});
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.only(bottom: 10),
       child: KCard(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(14),
         child: Row(
           children: [
-            CircleAvatar(
-              radius: 18,
-              backgroundColor: AppColors.primary.withValues(alpha: 0.2),
-              child: Text(name[0], style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700)),
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: AppColors.primaryGradient,
+              ),
+              child: Center(
+                child: Text(name[0], style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+              ),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 12),
             Expanded(
               child: RichText(
                 text: TextSpan(
@@ -232,12 +235,12 @@ class _FriendActivity extends StatelessWidget {
                   children: [
                     TextSpan(text: name, style: const TextStyle(fontWeight: FontWeight.w700)),
                     TextSpan(text: ' $action '),
-                    TextSpan(text: target, style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.w600)),
+                    TextSpan(text: episode, style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.primary)),
                   ],
                 ),
               ),
             ),
-            Text(time, style: Theme.of(context).textTheme.labelSmall),
+            Text(time, style: AppTextStyles.caption),
           ],
         ),
       ),

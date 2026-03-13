@@ -1,29 +1,27 @@
+
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/constants/app_constants.dart';
 import '../../../../core/widgets/shared_widgets.dart';
-import '../../../../services/supabase_service.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class OnboardingScreen extends ConsumerStatefulWidget {
+class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
 
   @override
-  ConsumerState<OnboardingScreen> createState() => _OnboardingScreenState();
+  State<OnboardingScreen> createState() => _OnboardingScreenState();
 }
 
-class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
+class _OnboardingScreenState extends State<OnboardingScreen> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
-  static const _totalPages = 5;
 
-  // Onboarding state
-  final Set<String> _selectedLanguages = {'en', 'hinglish'};
+  // Selections
+  final Set<String> _selectedLanguages = {'en'};
   final Set<String> _selectedInterests = {};
-  double _commuteDuration = 45;
-  String _selectedVoice = 'Confident Female';
-  bool _isSaving = false;
+  double _commuteDuration = 30;
+  String _selectedVoice = 'natural';
 
   @override
   void dispose() {
@@ -31,44 +29,21 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     super.dispose();
   }
 
-  Future<void> _nextPage() async {
-    if (_currentPage < _totalPages - 1) {
-      if (_currentPage == 2 && _selectedInterests.length < 3) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Please select at least 3 interests')),
-        );
-        return;
-      }
-
-      _pageController.nextPage(
-        duration: const Duration(milliseconds: 400),
+  void _nextPage() {
+    if (_currentPage < 4) {
+      _pageController.animateToPage(
+        _currentPage + 1,
+        duration: const Duration(milliseconds: 500),
         curve: Curves.easeInOutCubic,
       );
-    } else {
-      setState(() => _isSaving = true);
-      try {
-        await ref.read(supabaseServiceProvider).completeOnboarding(
-          languages: _selectedLanguages.toList(),
-          interests: _selectedInterests.toList(),
-          commuteDuration: _commuteDuration.round(),
-          preferredVoice: _selectedVoice,
-        );
-        if (mounted) context.go('/');
-      } catch (e) {
-        if (mounted) {
-          setState(() => _isSaving = false);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to save preferences: $e'), backgroundColor: AppColors.error),
-          );
-        }
-      }
     }
   }
 
   void _previousPage() {
     if (_currentPage > 0) {
-      _pageController.previousPage(
-        duration: const Duration(milliseconds: 400),
+      _pageController.animateToPage(
+        _currentPage - 1,
+        duration: const Duration(milliseconds: 500),
         curve: Curves.easeInOutCubic,
       );
     }
@@ -82,60 +57,41 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Color(0xFF1A1E24), Color(0xFF252A32)],
+            colors: [Color(0xFF0F1117), Color(0xFF151826), Color(0xFF0F1117)],
           ),
         ),
         child: SafeArea(
           child: Column(
             children: [
-              // Progress bar
+              // ── Progress + Back ──
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                 child: Row(
                   children: [
                     if (_currentPage > 0)
                       IconButton(
                         onPressed: _previousPage,
-                        icon: const Icon(Icons.arrow_back, color: Colors.white70),
+                        icon: const Icon(Icons.arrow_back_rounded, color: AppColors.grey400),
                       )
                     else
                       const SizedBox(width: 48),
                     Expanded(
-                      child: Row(
-                        children: List.generate(
-                          _totalPages,
-                          (i) => Expanded(
-                            child: Container(
-                              height: 4,
-                              margin: const EdgeInsets.symmetric(horizontal: 2),
-                              decoration: BoxDecoration(
-                                color: i <= _currentPage
-                                    ? AppColors.primary
-                                    : Colors.white.withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(2),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
+                      child: _buildProgressDots(),
                     ),
-                    TextButton(
-                      onPressed: () => context.go('/'),
-                      child: Text(
-                        'Skip',
-                        style: TextStyle(color: Colors.white.withValues(alpha: 0.5)),
-                      ),
+                    Text(
+                      '${_currentPage + 1}/5',
+                      style: AppTextStyles.mono.copyWith(color: AppColors.grey500),
                     ),
                   ],
                 ),
               ),
 
-              // Pages
+              // ── Pages ──
               Expanded(
                 child: PageView(
                   controller: _pageController,
                   physics: const NeverScrollableScrollPhysics(),
-                  onPageChanged: (page) => setState(() => _currentPage = page),
+                  onPageChanged: (index) => setState(() => _currentPage = index),
                   children: [
                     _buildWelcomePage(),
                     _buildLanguagePage(),
@@ -145,16 +101,6 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   ],
                 ),
               ),
-
-              // Bottom button
-              Padding(
-                padding: const EdgeInsets.all(24),
-                child: KGradientButton(
-                  text: _currentPage == _totalPages - 1 ? 'Start Listening 🎧' : 'Continue',
-                  isLoading: _isSaving,
-                  onPressed: _nextPage,
-                ),
-              ),
             ],
           ),
         ),
@@ -162,422 +108,354 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     );
   }
 
-  Widget _buildWelcomePage() {
-    return Center(
-      child: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 20),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 120,
-                height: 120,
-                decoration: BoxDecoration(
-                  gradient: AppColors.primaryGradient,
-                  borderRadius: BorderRadius.circular(30),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.primary.withValues(alpha: 0.4),
-                      blurRadius: 40,
-                      offset: const Offset(0, 12),
-                    ),
-                  ],
-                ),
-                child: const Icon(Icons.headphones_rounded, color: Colors.white, size: 56),
-              ),
-              const SizedBox(height: 40),
-              Text(
-                'Welcome to Kaan! 👋',
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.displaySmall?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w800,
-                    ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                'Transform your daily commute into a\npowerful learning experience',
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      color: Colors.white.withValues(alpha: 0.6),
-                      height: 1.6,
-                    ),
-              ),
-              const SizedBox(height: 40),
-              Wrap(
-                alignment: WrapAlignment.center,
-                spacing: 12,
-                runSpacing: 12,
-                children: const [
-                  _FeatureChip(icon: '🎧', label: 'Curated Audio'),
-                  _FeatureChip(icon: '🤖', label: 'AI Powered'),
-                  _FeatureChip(icon: '🏆', label: 'Gamified'),
-                ],
-              ),
-            ],
+  Widget _buildProgressDots() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: List.generate(5, (i) {
+        final isActive = i == _currentPage;
+        final isPast = i < _currentPage;
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          margin: const EdgeInsets.symmetric(horizontal: 4),
+          width: isActive ? 28 : 8,
+          height: 8,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(4),
+            gradient: isActive ? AppColors.primaryGradient : null,
+            color: isActive ? null : (isPast ? AppColors.primary.withValues(alpha: 0.4) : AppColors.darkDivider),
           ),
-        ),
+        );
+      }),
+    );
+  }
+
+  Widget _buildWelcomePage() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 28),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // Vinyl icon
+          Container(
+            width: 100,
+            height: 100,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: AppColors.primaryGradient,
+              boxShadow: [
+                BoxShadow(color: AppColors.primary.withValues(alpha: 0.3), blurRadius: 30),
+              ],
+            ),
+            child: const Icon(Icons.headphones_rounded, color: Colors.white, size: 48),
+          ).animate().scale(begin: const Offset(0.6, 0.6), duration: 600.ms, curve: Curves.elasticOut),
+          const SizedBox(height: 40),
+          Text(
+            'Let\'s make your\ncommute count',
+            style: AppTextStyles.displayMedium.copyWith(color: Colors.white),
+            textAlign: TextAlign.center,
+          ).animate().fadeIn(delay: 200.ms, duration: 600.ms),
+          const SizedBox(height: 12),
+          Text(
+            'A few quick questions to personalize\nyour listening experience',
+            style: AppTextStyles.bodyMedium.copyWith(color: AppColors.grey400),
+            textAlign: TextAlign.center,
+          ).animate().fadeIn(delay: 400.ms, duration: 600.ms),
+          const SizedBox(height: 60),
+          KGradientButton(
+            text: 'Let\'s go →',
+            onPressed: _nextPage,
+          ).animate().fadeIn(delay: 600.ms, duration: 400.ms).slideY(begin: 0.2, end: 0),
+        ],
       ),
     );
   }
 
   Widget _buildLanguagePage() {
     return SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Choose your languages 🌏',
-              style: Theme.of(context).textTheme.headlineLarge?.copyWith(color: Colors.white),
+      padding: const EdgeInsets.symmetric(horizontal: 28),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 20),
+          Text(
+            'What languages\ndo you speak?',
+            style: AppTextStyles.displaySmall.copyWith(color: Colors.white),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'We\'ll find podcasts in your preferred languages',
+            style: AppTextStyles.bodyMedium.copyWith(color: AppColors.grey500),
+          ),
+          const SizedBox(height: 32),
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              childAspectRatio: 2.3,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
             ),
-            const SizedBox(height: 8),
-            Text(
-              'Select the languages you\'d like to listen in',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white60),
-            ),
-            const SizedBox(height: 28),
-            GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                childAspectRatio: 2.8,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-              ),
-              itemCount: AppConstants.supportedLanguages.length,
-              itemBuilder: (context, index) {
-                final lang = AppConstants.supportedLanguages[index];
-                final isSelected = _selectedLanguages.contains(lang['code']);
-                return InkWell(
-                  onTap: () {
-                    setState(() {
-                      if (isSelected) {
-                        _selectedLanguages.remove(lang['code']);
-                      } else {
-                        _selectedLanguages.add(lang['code']!);
-                      }
-                    });
-                  },
-                  borderRadius: BorderRadius.circular(14),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? AppColors.primary.withValues(alpha: 0.2)
-                          : Colors.white.withValues(alpha: 0.06),
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(
-                        color: isSelected ? AppColors.primary : Colors.white.withValues(alpha: 0.1),
-                        width: isSelected ? 2 : 1,
-                      ),
-                    ),
-                    child: Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            lang['nativeName']!,
-                            style: TextStyle(
-                              color: isSelected ? AppColors.primary : Colors.white70,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 15,
-                            ),
-                          ),
-                          Text(
-                            lang['name']!,
-                            style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.4),
-                              fontSize: 11,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ],
-        ),
+            itemCount: AppConstants.supportedLanguages.length,
+            itemBuilder: (context, index) {
+              final lang = AppConstants.supportedLanguages[index];
+              final isSelected = _selectedLanguages.contains(lang['code']);
+              return _SelectableChip(
+                title: lang['nativeName']!,
+                subtitle: lang['name']!,
+                isSelected: isSelected,
+                onTap: () {
+                  setState(() {
+                    if (isSelected && _selectedLanguages.length > 1) {
+                      _selectedLanguages.remove(lang['code']);
+                    } else {
+                      _selectedLanguages.add(lang['code']!);
+                    }
+                  });
+                },
+              );
+            },
+          ),
+          const SizedBox(height: 32),
+          KGradientButton(text: 'Continue →', onPressed: _nextPage),
+          const SizedBox(height: 40),
+        ],
       ),
     );
   }
 
   Widget _buildInterestsPage() {
     return SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'What interests you? 🎯',
-              style: Theme.of(context).textTheme.headlineLarge?.copyWith(color: Colors.white),
+      padding: const EdgeInsets.symmetric(horizontal: 28),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 20),
+          Text(
+            'What are you\ninto?',
+            style: AppTextStyles.displaySmall.copyWith(color: Colors.white),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Pick at least 3 topics. We\'ll curate your feed.',
+            style: AppTextStyles.bodyMedium.copyWith(color: AppColors.grey500),
+          ),
+          const SizedBox(height: 32),
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              childAspectRatio: 2.0,
+              crossAxisSpacing: 12,
+              mainAxisSpacing: 12,
             ),
-            const SizedBox(height: 8),
-            Text(
-              'Pick at least 3 topics (${_selectedInterests.length} selected)',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white60),
-            ),
-            const SizedBox(height: 24),
-            GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                childAspectRatio: 2.2,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-              ),
-              itemCount: AppConstants.interestCategories.length,
-              itemBuilder: (context, index) {
-                final cat = AppConstants.interestCategories[index];
-                final isSelected = _selectedInterests.contains(cat['id']);
-                return InkWell(
-                  onTap: () {
-                    setState(() {
-                      if (isSelected) {
-                        _selectedInterests.remove(cat['id']);
-                      } else {
-                        _selectedInterests.add(cat['id'] as String);
-                      }
-                    });
-                  },
-                  borderRadius: BorderRadius.circular(14),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 200),
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? Color(cat['color'] as int).withValues(alpha: 0.2)
-                          : Colors.white.withValues(alpha: 0.06),
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(
-                        color: isSelected
-                            ? Color(cat['color'] as int)
-                            : Colors.white.withValues(alpha: 0.1),
-                        width: isSelected ? 2 : 1,
-                      ),
-                    ),
-                    child: Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(cat['icon'] as String, style: const TextStyle(fontSize: 26)),
-                          const SizedBox(height: 6),
-                          Text(
-                            cat['name'] as String,
-                            style: TextStyle(
-                              color: isSelected
-                                  ? Color(cat['color'] as int)
-                                  : Colors.white70,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 13,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ],
-        ),
+            itemCount: AppConstants.interestCategories.length,
+            itemBuilder: (context, index) {
+              final cat = AppConstants.interestCategories[index];
+              final isSelected = _selectedInterests.contains(cat['id']);
+              return _SelectableChip(
+                title: '${cat['icon']}  ${cat['name']}',
+                isSelected: isSelected,
+                selectedColor: Color(cat['color'] as int),
+                onTap: () {
+                  setState(() {
+                    if (isSelected) {
+                      _selectedInterests.remove(cat['id']);
+                    } else {
+                      _selectedInterests.add(cat['id'] as String);
+                    }
+                  });
+                },
+              );
+            },
+          ),
+          const SizedBox(height: 32),
+          KGradientButton(
+            text: 'Continue →',
+            onPressed: _selectedInterests.length >= 3 ? _nextPage : () {},
+          ),
+          const SizedBox(height: 40),
+        ],
       ),
     );
   }
 
   Widget _buildCommutePage() {
-    return Center(
-      child: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 20),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Text('🚇', style: TextStyle(fontSize: 60)),
-              const SizedBox(height: 24),
-              Text(
-                'How long is your commute?',
-                style: Theme.of(context).textTheme.headlineLarge?.copyWith(color: Colors.white),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'We\'ll curate the perfect playlist length',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white60),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 48),
-              Text(
-                '${_commuteDuration.round()} min',
-                style: Theme.of(context).textTheme.displayLarge?.copyWith(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.w800,
-                    ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                _commuteDuration <= 20
-                    ? 'Quick ride 🏍️'
-                    : _commuteDuration <= 45
-                        ? 'Average commute 🚌'
-                        : _commuteDuration <= 75
-                            ? 'Long journey 🚂'
-                            : 'Marathon commute 🚀',
-                style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 14),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 32),
-              SliderTheme(
-                data: SliderThemeData(
-                  activeTrackColor: AppColors.primary,
-                  inactiveTrackColor: Colors.white.withValues(alpha: 0.15),
-                  thumbColor: AppColors.primary,
-                  overlayColor: AppColors.primary.withValues(alpha: 0.2),
-                  trackHeight: 6,
-                  thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 14),
-                ),
-                child: Slider(
-                  value: _commuteDuration,
-                  min: AppConstants.minCommuteDuration.toDouble(),
-                  max: AppConstants.maxCommuteDuration.toDouble(),
-                  divisions: 21,
-                  onChanged: (val) => setState(() => _commuteDuration = val),
-                ),
-              ),
-              const SizedBox(height: 8),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('15 min', style: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 12)),
-                  Text('120 min', style: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 12)),
-                ],
-              ),
-            ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 28),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            'How long is\nyour commute?',
+            style: AppTextStyles.displaySmall.copyWith(color: Colors.white),
+            textAlign: TextAlign.center,
           ),
-        ),
+          const SizedBox(height: 8),
+          Text(
+            'We\'ll fit episodes perfectly to your journey',
+            style: AppTextStyles.bodyMedium.copyWith(color: AppColors.grey500),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 48),
+          // Big number display
+          Text(
+            '${_commuteDuration.round()}',
+            style: AppTextStyles.streakCount.copyWith(
+              color: AppColors.accent,
+              fontSize: 72,
+            ),
+          ),
+          Text(
+            'minutes',
+            style: AppTextStyles.overline.copyWith(color: AppColors.grey500),
+          ),
+          const SizedBox(height: 32),
+          // Slider
+          SliderTheme(
+            data: SliderThemeData(
+              activeTrackColor: AppColors.primary,
+              inactiveTrackColor: AppColors.darkDivider,
+              thumbColor: AppColors.primary,
+              trackHeight: 4,
+              thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 8),
+              overlayColor: AppColors.primary.withValues(alpha: 0.15),
+            ),
+            child: Slider(
+              value: _commuteDuration,
+              min: AppConstants.minCommuteDuration.toDouble(),
+              max: AppConstants.maxCommuteDuration.toDouble(),
+              divisions: 21,
+              onChanged: (val) => setState(() => _commuteDuration = val),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('15 min', style: AppTextStyles.caption),
+                Text('120 min', style: AppTextStyles.caption),
+              ],
+            ),
+          ),
+          const SizedBox(height: 48),
+          KGradientButton(text: 'Continue →', onPressed: _nextPage),
+        ],
       ),
     );
   }
 
   Widget _buildVoicePage() {
-    final voices = ['Confident Female', 'Calm Male', 'Energetic Female', 'Deep Male', 'Friendly Female'];
-    return Center(
-      child: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 20),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Text('🎙️', style: TextStyle(fontSize: 60)),
-              const SizedBox(height: 24),
-              Text(
-                'Choose your narrator',
-                style: Theme.of(context).textTheme.headlineLarge?.copyWith(color: Colors.white),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                'AI-generated summaries will use this voice',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white60),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 36),
-              ...voices.map((voice) {
-                final isSelected = _selectedVoice == voice;
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: InkWell(
-                    onTap: () => setState(() => _selectedVoice = voice),
-                    borderRadius: BorderRadius.circular(14),
-                    child: AnimatedContainer(
-                      duration: const Duration(milliseconds: 200),
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? AppColors.primary.withValues(alpha: 0.15)
-                            : Colors.white.withValues(alpha: 0.06),
-                        borderRadius: BorderRadius.circular(14),
-                        border: Border.all(
-                          color: isSelected ? AppColors.primary : Colors.white.withValues(alpha: 0.1),
-                          width: isSelected ? 2 : 1,
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Container(
-                            width: 44,
-                            height: 44,
-                            decoration: BoxDecoration(
-                              color: isSelected
-                                  ? AppColors.primary.withValues(alpha: 0.3)
-                                  : Colors.white.withValues(alpha: 0.08),
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              Icons.record_voice_over,
-                              color: isSelected ? AppColors.primary : Colors.white54,
-                              size: 22,
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Text(
-                              voice,
-                              style: TextStyle(
-                                color: isSelected ? AppColors.primary : Colors.white70,
-                                fontWeight: FontWeight.w600,
-                                fontSize: 15,
-                              ),
-                            ),
-                          ),
-                          Icon(
-                            isSelected ? Icons.check_circle : Icons.play_circle_outline,
-                            color: isSelected ? AppColors.primary : Colors.white38,
-                            size: 28,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              }),
-            ],
+    final voices = [
+      {'id': 'natural', 'name': 'Natural', 'desc': 'Warm, conversational', 'icon': '🎙️'},
+      {'id': 'professional', 'name': 'Professional', 'desc': 'Clear, authoritative', 'icon': '🎧'},
+      {'id': 'friendly', 'name': 'Friendly', 'desc': 'Casual, upbeat', 'icon': '😊'},
+    ];
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 28),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            'Choose your\nlistening vibe',
+            style: AppTextStyles.displaySmall.copyWith(color: Colors.white),
+            textAlign: TextAlign.center,
           ),
-        ),
+          const SizedBox(height: 8),
+          Text(
+            'How should Kaan sound to you?',
+            style: AppTextStyles.bodyMedium.copyWith(color: AppColors.grey500),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 40),
+          ...voices.map((voice) {
+            final isSelected = _selectedVoice == voice['id'];
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: _SelectableChip(
+                title: '${voice['icon']}  ${voice['name']}',
+                subtitle: voice['desc'],
+                isSelected: isSelected,
+                onTap: () => setState(() => _selectedVoice = voice['id']!),
+              ),
+            );
+          }),
+          const SizedBox(height: 32),
+          KGradientButton(
+            text: 'Start Listening 🎧',
+            onPressed: () {
+              // Navigate to main app
+            },
+          ),
+        ],
       ),
     );
   }
 }
 
-class _FeatureChip extends StatelessWidget {
-  final String icon;
-  final String label;
+class _SelectableChip extends StatelessWidget {
+  final String title;
+  final String? subtitle;
+  final bool isSelected;
+  final Color? selectedColor;
+  final VoidCallback onTap;
 
-  const _FeatureChip({required this.icon, required this.label});
+  const _SelectableChip({
+    required this.title,
+    this.subtitle,
+    required this.isSelected,
+    this.selectedColor,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(icon, style: const TextStyle(fontSize: 16)),
-          const SizedBox(width: 6),
-          Text(label, style: const TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600)),
-        ],
+    final color = selectedColor ?? AppColors.primary;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(16),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: BoxDecoration(
+            color: isSelected ? color.withValues(alpha: 0.12) : Colors.white.withValues(alpha: 0.04),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: isSelected ? color : AppColors.darkDivider,
+              width: isSelected ? 1.5 : 1,
+            ),
+            boxShadow: isSelected
+                ? [BoxShadow(color: color.withValues(alpha: 0.15), blurRadius: 12)]
+                : null,
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                title,
+                style: AppTextStyles.labelLarge.copyWith(
+                  color: isSelected ? color : AppColors.grey300,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              if (subtitle != null) ...[
+                const SizedBox(height: 2),
+                Text(
+                  subtitle!,
+                  style: AppTextStyles.caption.copyWith(
+                    color: isSelected ? color.withValues(alpha: 0.7) : AppColors.grey600,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ],
+          ),
+        ),
       ),
     );
   }
