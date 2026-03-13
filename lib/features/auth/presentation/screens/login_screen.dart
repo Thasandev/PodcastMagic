@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
@@ -258,8 +259,11 @@ class _LoginScreenState extends State<LoginScreen>
                     child: TextField(
                       controller: _phoneController,
                       keyboardType: TextInputType.phone,
+                      maxLength: 10,
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                       style: AppTextStyles.bodyLarge.copyWith(color: Colors.white, letterSpacing: 1.5),
                       decoration: InputDecoration(
+                        counterText: '',
                         hintText: 'Phone number',
                         hintStyle: AppTextStyles.bodyLarge.copyWith(color: AppColors.grey600),
                         border: InputBorder.none,
@@ -333,6 +337,7 @@ class _LoginScreenState extends State<LoginScreen>
                   keyboardType: TextInputType.number,
                   textAlign: TextAlign.center,
                   maxLength: 1,
+                  obscureText: true,
                   style: AppTextStyles.headlineMedium.copyWith(color: Colors.white),
                   decoration: const InputDecoration(
                     counterText: '',
