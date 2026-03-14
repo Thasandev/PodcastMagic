@@ -32,7 +32,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             icon: Icons.person_outlined,
             title: 'Edit Profile',
             subtitle: 'Name, bio, avatar',
-            onTap: () => context.push('/editProfile'),
+            onTap: () => context.push('/edit-profile'),
           ),
           _SettingsTile(
             icon: Icons.language_rounded,
@@ -54,8 +54,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _DropdownTile(
             icon: Icons.speed_rounded,
             title: 'Playback Speed',
-            value: '${_playbackSpeed}x',
-            items: ['0.5x', '0.75x', '1.0x', '1.25x', '1.5x', '2.0x', '3.0x'],
+            value: _playbackSpeed == 1.0 ? '1.0x' : '${_playbackSpeed}x',
+            items: const ['0.5x', '0.75x', '1.0x', '1.25x', '1.5x', '2.0x', '3.0x'],
             onChanged: (val) {
               setState(() {
                 _playbackSpeed = double.parse(val.replaceAll('x', ''));
@@ -65,9 +65,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
           _DropdownTile(
             icon: Icons.high_quality_rounded,
             title: 'Audio Quality',
-            value: _audioQuality == 'high' ? 'High' : (_audioQuality == 'medium' ? 'Medium' : 'Low'),
+            value: _audioQuality == 'high'
+                ? 'High'
+                : (_audioQuality == 'medium' ? 'Medium' : 'Low'),
             items: ['High', 'Medium', 'Low'],
-            onChanged: (val) => setState(() => _audioQuality = val.toLowerCase()),
+            onChanged: (val) =>
+                setState(() => _audioQuality = val.toLowerCase()),
           ),
           _SwitchTile(
             icon: Icons.download_rounded,
@@ -156,7 +159,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
               onPressed: () {},
               child: Text(
                 'Sign Out',
-                style: AppTextStyles.labelLarge.copyWith(color: AppColors.error),
+                style: AppTextStyles.labelLarge.copyWith(
+                  color: AppColors.error,
+                ),
               ),
             ),
           ),
@@ -165,7 +170,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
               onPressed: () {},
               child: Text(
                 'Delete Account',
-                style: AppTextStyles.labelMedium.copyWith(color: AppColors.grey600),
+                style: AppTextStyles.labelMedium.copyWith(
+                  color: AppColors.grey600,
+                ),
               ),
             ),
           ),
@@ -183,7 +190,10 @@ class _SectionLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8, top: 4, left: 4),
-      child: Text(text, style: AppTextStyles.overline.copyWith(color: AppColors.grey500)),
+      child: Text(
+        text,
+        style: AppTextStyles.overline.copyWith(color: AppColors.grey500),
+      ),
     );
   }
 }
@@ -195,7 +205,13 @@ class _SettingsTile extends StatelessWidget {
   final Widget? trailing;
   final VoidCallback onTap;
 
-  const _SettingsTile({required this.icon, required this.title, this.subtitle, this.trailing, required this.onTap});
+  const _SettingsTile({
+    required this.icon,
+    required this.title,
+    this.subtitle,
+    this.trailing,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -218,11 +234,17 @@ class _SettingsTile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(title, style: Theme.of(context).textTheme.titleSmall),
-                if (subtitle != null) Text(subtitle!, style: AppTextStyles.caption),
+                if (subtitle != null)
+                  Text(subtitle!, style: AppTextStyles.caption),
               ],
             ),
           ),
-          trailing ?? const Icon(Icons.chevron_right_rounded, color: AppColors.grey600, size: 20),
+          trailing ??
+              const Icon(
+                Icons.chevron_right_rounded,
+                color: AppColors.grey600,
+                size: 20,
+              ),
         ],
       ),
     );
@@ -236,7 +258,13 @@ class _SwitchTile extends StatelessWidget {
   final bool value;
   final ValueChanged<bool> onChanged;
 
-  const _SwitchTile({required this.icon, required this.title, this.subtitle, required this.value, required this.onChanged});
+  const _SwitchTile({
+    required this.icon,
+    required this.title,
+    this.subtitle,
+    required this.value,
+    required this.onChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -258,7 +286,8 @@ class _SwitchTile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(title, style: Theme.of(context).textTheme.titleSmall),
-                if (subtitle != null) Text(subtitle!, style: AppTextStyles.caption),
+                if (subtitle != null)
+                  Text(subtitle!, style: AppTextStyles.caption),
               ],
             ),
           ),
@@ -283,7 +312,13 @@ class _DropdownTile extends StatelessWidget {
   final List<String> items;
   final ValueChanged<String> onChanged;
 
-  const _DropdownTile({required this.icon, required this.title, required this.value, required this.items, required this.onChanged});
+  const _DropdownTile({
+    required this.icon,
+    required this.title,
+    required this.value,
+    required this.items,
+    required this.onChanged,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -300,12 +335,19 @@ class _DropdownTile extends StatelessWidget {
             child: Icon(icon, color: AppColors.grey400, size: 20),
           ),
           const SizedBox(width: 14),
-          Expanded(child: Text(title, style: Theme.of(context).textTheme.titleSmall)),
+          Expanded(
+            child: Text(title, style: Theme.of(context).textTheme.titleSmall),
+          ),
           DropdownButton<String>(
             value: value,
             underline: const SizedBox(),
-            icon: const Icon(Icons.keyboard_arrow_down_rounded, color: AppColors.grey500),
-            items: items.map((e) => DropdownMenuItem(value: e, child: Text(e))).toList(),
+            icon: const Icon(
+              Icons.keyboard_arrow_down_rounded,
+              color: AppColors.grey500,
+            ),
+            items: items
+                .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                .toList(),
             onChanged: (val) => onChanged(val!),
           ),
         ],
@@ -323,7 +365,9 @@ class _ConnectedBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: connected ? AppColors.success.withValues(alpha: 0.12) : AppColors.grey700,
+        color: connected
+            ? AppColors.success.withValues(alpha: 0.12)
+            : AppColors.grey700,
         borderRadius: BorderRadius.circular(12),
       ),
       child: Text(
