@@ -1,21 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import '../../features/auth/presentation/screens/login_screen.dart';
-import '../../features/onboarding/presentation/screens/onboarding_screen.dart';
-import '../../features/home/presentation/screens/main_shell.dart';
-import '../../features/home/presentation/screens/home_screen.dart';
-import '../../features/discovery/presentation/screens/discovery_screen.dart';
-import '../../features/library/presentation/screens/library_screen.dart';
-import '../../features/dangal/presentation/screens/dangal_screen.dart';
-import '../../features/profile/presentation/screens/profile_screen.dart';
-import '../../features/player/presentation/screens/player_screen.dart';
-import '../../features/reflections/presentation/screens/reflections_screen.dart';
-import '../../features/reflections/presentation/screens/record_reflection_screen.dart';
-import '../../features/coins/presentation/screens/coins_screen.dart';
-import '../../features/settings/presentation/screens/settings_screen.dart';
-import '../../features/profile/presentation/screens/edit_profile_screen.dart';
-import '../../features/community/presentation/screens/community_screen.dart';
-import '../models/models.dart';
+import 'package:kaan/features/auth/presentation/screens/login_screen.dart';
+import 'package:kaan/features/onboarding/presentation/screens/onboarding_screen.dart';
+import 'package:kaan/features/home/presentation/screens/main_shell.dart';
+import 'package:kaan/features/home/presentation/screens/home_screen.dart';
+import 'package:kaan/features/discovery/presentation/screens/discovery_screen.dart';
+import 'package:kaan/features/library/presentation/screens/library_screen.dart';
+import 'package:kaan/features/dangal/presentation/screens/dangal_screen.dart';
+import 'package:kaan/features/profile/presentation/screens/profile_screen.dart';
+import 'package:kaan/features/player/presentation/screens/player_screen.dart';
+import 'package:kaan/features/reflections/presentation/screens/reflections_screen.dart';
+import 'package:kaan/features/reflections/presentation/screens/record_reflection_screen.dart';
+import 'package:kaan/features/coins/presentation/screens/coins_screen.dart';
+import 'package:kaan/features/settings/presentation/screens/settings_screen.dart';
+import 'package:kaan/features/profile/presentation/screens/edit_profile_screen.dart';
+import 'package:kaan/features/community/presentation/screens/community_screen.dart';
+import 'package:kaan/core/models/models.dart';
 
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
 final GlobalKey<NavigatorState> _shellNavigatorKey =
@@ -73,7 +73,7 @@ final GoRouter appRouter = GoRouter(
       parentNavigatorKey: _rootNavigatorKey,
       builder: (context, state) {
         final episode = state.extra as Episode?;
-        return PlayerScreen(episode: episode);
+        return PlayerScreen(initialEpisode: episode);
       },
     ),
     GoRoute(

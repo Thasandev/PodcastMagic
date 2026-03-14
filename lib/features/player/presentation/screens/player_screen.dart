@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:audio_service/audio_service.dart' as as;
+import 'package:audio_service/audio_service.dart' as audio_pkg;
 
 import 'package:kaan/core/theme/app_colors.dart';
 import 'package:kaan/core/theme/app_text_styles.dart';
@@ -39,7 +39,7 @@ class PlayerScreen extends ConsumerWidget {
             children: [
               const SizedBox(height: 20),
               // Album Art
-              StreamBuilder<as.MediaItem?>(
+              StreamBuilder<audio_pkg.MediaItem?>(
                 stream: audioService.mediaItemStream,
                 builder: (context, snapshot) {
                   final mediaItem = snapshot.data;
@@ -71,7 +71,7 @@ class PlayerScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 40),
               // Title & Artist
-              StreamBuilder<as.MediaItem?>(
+              StreamBuilder<audio_pkg.MediaItem?>(
                 stream: audioService.mediaItemStream,
                 builder: (context, snapshot) {
                   final mediaItem = snapshot.data;
@@ -97,10 +97,10 @@ class PlayerScreen extends ConsumerWidget {
               const SizedBox(height: 48),
               // Progress Bar
               StreamBuilder<Duration>(
-                stream: as.AudioService.position,
+                stream: audio_pkg.AudioService.position,
                 builder: (context, snapshot) {
                   final position = snapshot.data ?? Duration.zero;
-                  return StreamBuilder<as.MediaItem?>(
+                  return StreamBuilder<audio_pkg.MediaItem?>(
                     stream: audioService.mediaItemStream,
                     builder: (context, snapshot) {
                       final duration = snapshot.data?.duration ?? Duration.zero;
@@ -159,7 +159,7 @@ class PlayerScreen extends ConsumerWidget {
                     icon: const Icon(Icons.replay_10_rounded, color: Colors.white, size: 32),
                     onPressed: () => audioService.rewind(),
                   ),
-                  StreamBuilder<as.PlaybackState>(
+                  StreamBuilder<audio_pkg.PlaybackState>(
                     stream: audioService.playbackStateStream,
                     builder: (context, snapshot) {
                       final playing = snapshot.data?.playing ?? false;

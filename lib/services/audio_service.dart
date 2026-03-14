@@ -14,15 +14,16 @@ class AudioPlaybackService {
 
   Stream<bool> get playingStream => _handler.playbackState.map((state) => state.playing);
   Stream<Duration> get positionStream => _handler.player.positionStream; 
-  Stream<PlaybackState> get stateStream => _handler.playbackState;
-  Stream<MediaItem?> get mediaItemStream => _handler.mediaItem;
+  Stream<audio_pkg.PlaybackState> get stateStream => _handler.playbackState;
+  Stream<audio_pkg.PlaybackState> get playbackStateStream => _handler.playbackState;
+  Stream<audio_pkg.MediaItem?> get mediaItemStream => _handler.mediaItem;
   
   KaanAudioHandler get handler => _handler;
 
   Future<void> playEpisode(Episode episode) async {
     await _handler.playFromUri(
       Uri.parse(episode.audioUrl),
-      extras: {
+      {
         'title': episode.title,
         'podcast_name': episode.podcastName,
         'image_url': episode.podcastImageUrl,
@@ -35,6 +36,8 @@ class AudioPlaybackService {
   Future<void> pause() => _handler.pause();
   Future<void> seek(Duration position) => _handler.seek(position);
   Future<void> setSpeed(double speed) => _handler.player.setSpeed(speed);
+  Future<void> rewind() => _handler.seek(_handler.player.position - const Duration(seconds: 10));
+  Future<void> fastForward() => _handler.seek(_handler.player.position + const Duration(seconds: 30));
 }
 
 final audioServiceProvider = Provider<AudioPlaybackService>((ref) {

@@ -124,6 +124,8 @@ class KCard extends StatelessWidget {
   final Gradient? gradient;
   final bool frosted;
 
+  final double? height;
+
   const KCard({
     super.key,
     required this.child,
@@ -131,6 +133,7 @@ class KCard extends StatelessWidget {
     this.onTap,
     this.gradient,
     this.frosted = false,
+    this.height,
   });
 
   @override
@@ -138,6 +141,8 @@ class KCard extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     Widget cardContent = Container(
+      width: double.infinity,
+      height: height,
       padding: padding ?? const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: gradient ?? (frosted ? AppColors.glassGradient : null),
@@ -611,10 +616,11 @@ class KSearchInput extends StatelessWidget {
   const KSearchInput({
     super.key,
     this.controller,
-    this.hintText = 'Search podcasts...',
+    String? placeholder,
+    String? hintText,
     this.onChanged,
     this.onSubmitted,
-  });
+  }) : hintText = hintText ?? placeholder ?? 'Search podcasts...';
 
   @override
   Widget build(BuildContext context) {

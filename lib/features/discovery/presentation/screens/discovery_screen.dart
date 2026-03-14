@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:audio_service/audio_service.dart' as as;
+import 'package:audio_service/audio_service.dart' as audio_pkg;
 
 import 'package:kaan/core/theme/app_colors.dart';
 import 'package:kaan/core/theme/app_text_styles.dart';
@@ -93,7 +93,7 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen>
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
               child: KSearchInput(
                 controller: _searchController,
-                placeholder: 'Search podcasts, creators, topics...',
+                hintText: 'Search podcasts, creators, topics...',
                 onChanged: (val) {
                   setState(() => _isSearching = val.isNotEmpty);
                   if (val.isNotEmpty) {
@@ -225,7 +225,7 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen>
                     children: [
                       Text(
                         podcast.title,
-                        style: AppTextStyles.titleMedium,
+                        style: AppTextStyles.headlineSmall,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -308,7 +308,7 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen>
       itemBuilder: (context, index) => Padding(
         padding: const EdgeInsets.only(bottom: 16),
         child: KCard(
-          height: 160,
+          // height removed to match KCard
           child: Center(child: Text('Personalized Pick #${index + 1}')),
         ),
       ),
@@ -364,7 +364,7 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen>
           child: Center(
             child: Text(
               categories[index],
-              style: AppTextStyles.titleMedium,
+              style: AppTextStyles.headlineSmall,
             ),
           ),
         );
@@ -385,11 +385,11 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen>
             style: AppTextStyles.bodyMedium.copyWith(color: AppColors.grey500),
           ),
           const SizedBox(height: 32),
-          Text('YouTube Video/Playlist', style: AppTextStyles.titleSmall),
+          Text('YouTube Video/Playlist', style: AppTextStyles.bodyMedium),
           const SizedBox(height: 12),
           KSearchInput(
             controller: _youtubeUrlController,
-            placeholder: 'https://youtube.com/watch?v=...',
+            hintText: 'https://youtube.com/watch?v=...',
           ),
           const SizedBox(height: 16),
           KGradientButton(
@@ -402,10 +402,10 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen>
             },
           ),
           const SizedBox(height: 40),
-          Text('Direct RSS Feed', style: AppTextStyles.titleSmall),
+          Text('Direct RSS Feed', style: AppTextStyles.bodyMedium),
           const SizedBox(height: 12),
           const KSearchInput(
-            placeholder: 'https://example.com/feed.xml',
+            hintText: 'https://example.com/feed.xml',
           ),
           const SizedBox(height: 16),
           KGradientButton(
