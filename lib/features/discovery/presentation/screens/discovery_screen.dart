@@ -2,13 +2,18 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/theme/app_colors.dart';
-import '../../../../core/theme/app_text_styles.dart';
-import '../../../../core/data/sample_data.dart';
-import '../../../../core/widgets/shared_widgets.dart';
-import '../../data/repositories/podcast_repository.dart';
-import '../../../../core/models/models.dart';
-import '../../../../services/supabase_service.dart';
+import 'package:go_router/go_router.dart';
+import 'package:audio_service/audio_service.dart' as as;
+
+import 'package:kaan/core/theme/app_colors.dart';
+import 'package:kaan/core/theme/app_text_styles.dart';
+import 'package:kaan/core/widgets/shared_widgets.dart';
+import 'package:kaan/features/discovery/data/repositories/podcast_repository.dart';
+import 'package:kaan/core/models/models.dart';
+import 'package:kaan/services/supabase_service.dart';
+import 'package:kaan/services/audio_service.dart';
+import 'package:kaan/features/discovery/presentation/providers/discovery_providers.dart';
+import 'package:kaan/features/home/presentation/providers/home_providers.dart';
 
 class DiscoveryScreen extends ConsumerStatefulWidget {
   const DiscoveryScreen({super.key});
@@ -43,87 +48,77 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen>
     super.dispose();
   }
 
+  void _playAndNavigate(Episode episode) async {
+    // 1. Tell AudioService to play this episode
+    await ref.read(audioServiceProvider).playEpisode(episode);
+    
+    // 2. Navigate to player
+    if (mounted) {
+      context.push('/player', extra: episode);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       body: NestedScrollView(
-        headerSliverBuilder: (context, _) => [
+        headerSliverBuilder: (context, innerBoxIsScrolled) => [
           SliverAppBar(
-            floating: true,
+            expandedHeight: 120.0,
+            floating: false,
             pinned: true,
-            expandedHeight: 170,
-            backgroundColor: isDark
-                ? AppColors.darkBackground
-                : AppColors.lightBackground,
+            stretch: true,
+            backgroundColor: AppColors.darkBackground,
             flexibleSpace: FlexibleSpaceBar(
-              background: SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(20, 12, 20, 0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Discover',
-                        style: AppTextStyles.displaySmall.copyWith(
-                          color: isDark ? Colors.white : AppColors.secondary,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Find your next favourite podcast',
-                        style: AppTextStyles.bodySmall.copyWith(
-                          color: AppColors.grey500,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      KSearchInput(
-                        controller: _searchController,
-                        hintText: 'Search podcasts, topics, creators...',
-                        onChanged: (val) {
-                          setState(() {
-                            _isSearching = val.isNotEmpty;
-                            if (!_isSearching) {
-                              _searchResults = [];
-                              _lastQuery = '';
-                              _debounceTimer?.cancel();
-                            }
-                          });
-                          if (_isSearching) {
-                            _debounceTimer?.cancel();
-                            _debounceTimer = Timer(const Duration(milliseconds: 500), () {
-                              _performSearch(val);
-                            });
-                          }
-                        },
-                      ),
+              title: Text(
+                'Discover',
+                style: AppTextStyles.headlineMedium.copyWith(color: Colors.white),
+              ),
+              background: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: [
+                      AppColors.primary.withValues(alpha: 0.2),
+                      AppColors.darkBackground,
                     ],
                   ),
                 ),
               ),
             ),
-            bottom: PreferredSize(
-              preferredSize: const Size.fromHeight(48),
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 600),
-                  child: TabBar(
-                    controller: _tabController,
-                    indicatorColor: AppColors.primary,
-                    indicatorWeight: 3,
-                    indicatorSize: TabBarIndicatorSize.label,
-                    labelColor: isDark ? Colors.white : AppColors.secondary,
-                    unselectedLabelColor: AppColors.grey500,
-                    labelStyle: AppTextStyles.labelLarge,
-                    unselectedLabelStyle: AppTextStyles.labelMedium,
-                    tabs: const [
-                      Tab(text: 'For You'),
-                      Tab(text: 'Trending'),
-                      Tab(text: 'Categories'),
-                      Tab(text: 'Import'),
-                    ],
-                  ),
-                ),
+          ),
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+              child: KSearchInput(
+                controller: _searchController,
+                placeholder: 'Search podcasts, creators, topics...',
+                onChanged: (val) {
+                  setState(() => _isSearching = val.isNotEmpty);
+                  if (val.isNotEmpty) {
+                    _onSearchChanged(val);
+                  }
+                },
+              ),
+            ),
+          ),
+          SliverPersistentHeader(
+            pinned: true,
+            delegate: _SliverAppBarDelegate(
+              TabBar(
+                controller: _tabController,
+                isScrollable: true,
+                labelColor: AppColors.primary,
+                unselectedLabelColor: AppColors.grey500,
+                indicatorColor: AppColors.primary,
+                indicatorWeight: 3,
+                tabs: const [
+                  Tab(text: 'For You'),
+                  Tab(text: 'Trending'),
+                  Tab(text: 'Categories'),
+                  Tab(text: 'Import'),
+                ],
               ),
             ),
           ),
@@ -143,6 +138,13 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen>
     );
   }
 
+  void _onSearchChanged(String query) {
+    if (_debounceTimer?.isActive ?? false) _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 500), () {
+      _performSearch(query);
+    });
+  }
+
   void _performSearch(String query) async {
     if (query == _lastQuery) return;
     _lastQuery = query;
@@ -150,8 +152,7 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen>
     setState(() => _isLoadingResults = true);
 
     try {
-      final results =
-          await ref.read(podcastRepositoryProvider).searchPodcasts(query);
+      final results = await ref.read(podcastRepositoryProvider).searchPodcasts(query);
       if (mounted && query == _lastQuery) {
         setState(() {
           _searchResults = results;
@@ -163,6 +164,109 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen>
     }
   }
 
+  Widget _buildSearchResults() {
+    if (_isLoadingResults) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_searchResults.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.search_off_rounded, size: 64, color: AppColors.grey700),
+            const SizedBox(height: 16),
+            Text(
+              'No results found for "$_lastQuery"',
+              style: AppTextStyles.bodyMedium.copyWith(color: AppColors.grey500),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.all(16),
+      itemCount: _searchResults.length,
+      itemBuilder: (context, index) {
+        final podcast = _searchResults[index];
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: KCard(
+            onTap: () => _handlePodcastTap(podcast),
+            child: Row(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: podcast.imageUrl != null
+                      ? Image.network(
+                          podcast.imageUrl!,
+                          width: 80,
+                          height: 80,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) => Container(
+                            width: 80,
+                            height: 80,
+                            color: AppColors.grey800,
+                            child: const Icon(Icons.podcasts_rounded, color: AppColors.grey500),
+                          ),
+                        )
+                      : Container(
+                          width: 80,
+                          height: 80,
+                          color: AppColors.grey800,
+                          child: const Icon(Icons.podcasts_rounded, color: AppColors.grey500),
+                        ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        podcast.title,
+                        style: AppTextStyles.titleMedium,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        podcast.author,
+                        style: AppTextStyles.bodySmall.copyWith(color: AppColors.grey500),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              podcast.provider.toUpperCase(),
+                              style: AppTextStyles.overline.copyWith(color: AppColors.primary),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  onPressed: () => _handlePodcastTap(podcast),
+                  icon: const Icon(Icons.add_circle_outline_rounded, color: AppColors.primary),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   void _handlePodcastTap(PodcastSearchResult podcast) async {
     if (podcast.rssUrl.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -171,429 +275,147 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen>
       return;
     }
 
-    _showSyncingDialog();
-
-    try {
-      final episodes = await ref
-          .read(supabaseServiceProvider)
-          .syncAndGetEpisodes(podcast.rssUrl);
-
-      if (mounted) {
-        Navigator.pop(context); // Close dialog
-
-        if (episodes.isNotEmpty) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Imported ${episodes.length} episodes from ${podcast.title}'),
-              action: SnackBarAction(
-                label: 'PLAY',
-                onPressed: () {
-                  // TODO: Implement playback logic
-                },
-              ),
-            ),
-          );
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to import podcast: $e')),
-        );
-      }
-    }
-  }
-
-  void _showSyncingDialog() {
+    // Show loading dialog
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const CircularProgressIndicator(),
-            const SizedBox(height: 20),
-            Text('Syncing episodes...', style: AppTextStyles.bodyMedium),
-          ],
-        ),
-      ),
+      builder: (context) => const Center(child: CircularProgressIndicator()),
     );
-  }
 
-  Widget _buildSearchResults() {
-    if (_isLoadingResults) {
-      return const Center(child: CircularProgressIndicator());
-    }
+    try {
+      final episodes = await ref.read(supabaseServiceProvider).syncAndGetEpisodes(podcast.rssUrl);
+      Navigator.pop(context); // Close dialog
 
-    if (_searchResults.isEmpty) {
-      final query = _searchController.text;
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.search_off_rounded, size: 64, color: AppColors.grey600),
-            const SizedBox(height: 16),
-            Text(
-              'No results found for "$query"',
-              style: AppTextStyles.bodyLarge.copyWith(color: AppColors.grey500),
-            ),
-          ],
-        ),
+      if (episodes.isNotEmpty) {
+        _playAndNavigate(episodes.first);
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No episodes found for this podcast.')),
+        );
+      }
+    } catch (e) {
+      Navigator.pop(context); // Close dialog
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to sync podcast: $e')),
       );
     }
-
-    return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 120),
-      itemCount: _searchResults.length,
-      itemBuilder: (context, index) {
-        final result = _searchResults[index];
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 10),
-          child: KCard(
-            onTap: () => _handlePodcastTap(result),
-            padding: const EdgeInsets.all(12),
-            child: Row(
-              children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: result.imageUrl != null
-                      ? Image.network(
-                          result.imageUrl!,
-                          width: 60,
-                          height: 60,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, __, ___) => _buildPlaceholder(),
-                        )
-                      : _buildPlaceholder(),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        result.title,
-                        style: AppTextStyles.labelLarge,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        result.author,
-                        style: AppTextStyles.caption,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(
-                    Icons.add_circle_outline_rounded,
-                    color: AppColors.primary,
-                  ),
-                  onPressed: () => _handlePodcastTap(result),
-                ),
-              ],
-            ),
-          ),
-        ).animate().fadeIn(delay: (index * 40).ms, duration: 300.ms);
-      },
-    );
-  }
-
-  Widget _buildPlaceholder() {
-    return Container(
-      width: 60,
-      height: 60,
-      color: AppColors.grey800,
-      child: const Icon(Icons.podcasts_rounded, color: Colors.white24),
-    );
   }
 
   Widget _buildForYouTab() {
-    final episodes = SampleData.sampleEpisodes;
     return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 120),
-      itemCount: episodes.length,
-      itemBuilder: (context, index) {
-        final ep = episodes[index];
-        return Padding(
-          padding: const EdgeInsets.only(bottom: 10),
-          child: KEpisodeCard(
-            title: ep.title,
-            podcastName: ep.podcastName,
-            duration: ep.formattedDuration,
-            category: ep.category,
-            saveCount: ep.saveCount,
-            onTap: () {},
-            onPlay: () {},
-          ),
-        ).animate().fadeIn(delay: (index * 80).ms, duration: 400.ms);
-      },
+      padding: const EdgeInsets.all(16),
+      itemCount: 5,
+      itemBuilder: (context, index) => Padding(
+        padding: const EdgeInsets.only(bottom: 16),
+        child: KCard(
+          height: 160,
+          child: Center(child: Text('Personalized Pick #${index + 1}')),
+        ),
+      ),
     );
   }
 
   Widget _buildTrendingTab() {
-    final episodes = SampleData.sampleEpisodes;
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 120),
-      children: [
-        // Featured trending
-        Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF1E2230), Color(0xFF252A40)],
-            ),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: AppColors.darkDivider.withValues(alpha: 0.4),
-            ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 5,
-                    ),
-                    decoration: BoxDecoration(
-                      gradient: AppColors.primaryGradient,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      '🔥 HOT',
-                      style: AppTextStyles.overline.copyWith(
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                  const Spacer(),
-                  Text('Updated hourly', style: AppTextStyles.caption),
-                ],
+    final episodesAsync = ref.watch(trendingEpisodesProvider);
+
+    return episodesAsync.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (err, stack) => Center(child: Text('Error: $err')),
+      data: (episodes) {
+        if (episodes.isEmpty) {
+          return const Center(child: Text('No trending episodes yet.'));
+        }
+        return ListView.builder(
+          padding: const EdgeInsets.all(16),
+          itemCount: episodes.length,
+          itemBuilder: (context, index) {
+            final ep = episodes[index];
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: KEpisodeCard(
+                title: ep.title,
+                podcastName: ep.podcastName,
+                duration: ep.formattedDuration,
+                category: ep.category,
+                saveCount: ep.saveCount,
+                onTap: () => _playAndNavigate(ep),
+                onPlay: () => _playAndNavigate(ep),
               ),
-              const SizedBox(height: 14),
-              Text(
-                episodes.first.title,
-                style: AppTextStyles.headlineMedium.copyWith(
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                episodes.first.podcastName,
-                style: AppTextStyles.bodySmall.copyWith(
-                  color: AppColors.grey400,
-                ),
-              ),
-            ],
-          ),
-        ).animate().fadeIn(duration: 500.ms),
-        const SizedBox(height: 16),
-        ...episodes.asMap().entries.map((entry) {
-          final ep = entry.value;
-          return Padding(
-            padding: const EdgeInsets.only(bottom: 10),
-            child: KEpisodeCard(
-              title: ep.title,
-              podcastName: ep.podcastName,
-              duration: ep.formattedDuration,
-              category: ep.category,
-              saveCount: ep.saveCount,
-              onTap: () {},
-              onPlay: () {},
-            ),
-          );
-        }),
-      ],
+            );
+          },
+        );
+      },
     );
   }
 
   Widget _buildCategoriesTab() {
-    final categories = [
-      {'icon': '💻', 'name': 'Technology', 'color': 0xFF60A5FA},
-      {'icon': '💰', 'name': 'Business', 'color': 0xFFF5A623},
-      {'icon': '🧘', 'name': 'Mindfulness', 'color': 0xFF7ECFB3},
-      {'icon': '🎭', 'name': 'Entertainment', 'color': 0xFFFF6161},
-      {'icon': '📚', 'name': 'Education', 'color': 0xFFA78BFA},
-      {'icon': '🏏', 'name': 'Sports', 'color': 0xFF34D399},
-      {'icon': '🗞️', 'name': 'News', 'color': 0xFF60A5FA},
-      {'icon': '🎵', 'name': 'Music', 'color': 0xFFF472B6},
-    ];
-
+    final categories = ['Politics', 'Technology', 'Comedy', 'Finance', 'Mythology', 'Self-Help'];
     return GridView.builder(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 120),
+      padding: const EdgeInsets.all(16),
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: 2,
-        childAspectRatio: 1.3,
         crossAxisSpacing: 12,
         mainAxisSpacing: 12,
+        childAspectRatio: 1.5,
       ),
       itemCount: categories.length,
       itemBuilder: (context, index) {
-        final cat = categories[index];
-        final color = Color(cat['color'] as int);
         return KCard(
-              onTap: () {},
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    cat['icon'] as String,
-                    style: const TextStyle(fontSize: 32),
-                  ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        cat['name'] as String,
-                        style: AppTextStyles.labelLarge.copyWith(color: color),
-                      ),
-                      const SizedBox(height: 2),
-                      Container(
-                        width: 28,
-                        height: 3,
-                        decoration: BoxDecoration(
-                          color: color,
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            )
-            .animate()
-            .fadeIn(delay: (index * 60).ms, duration: 400.ms)
-            .scale(begin: const Offset(0.95, 0.95), end: const Offset(1, 1));
+          child: Center(
+            child: Text(
+              categories[index],
+              style: AppTextStyles.titleMedium,
+            ),
+          ),
+        );
       },
     );
   }
 
   Widget _buildImportTab() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 120),
+      padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // YouTube Import
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF1E2230), Color(0xFF252A40)],
-              ),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: AppColors.darkDivider.withValues(alpha: 0.4),
-              ),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: AppColors.error.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Icon(
-                        Icons.play_circle_filled,
-                        color: AppColors.error,
-                        size: 24,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'YouTube Import',
-                          style: AppTextStyles.headlineSmall.copyWith(
-                            color: Colors.white,
-                          ),
-                        ),
-                        Text(
-                          'Convert any video to audio',
-                          style: AppTextStyles.bodySmall.copyWith(
-                            color: AppColors.grey500,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.04),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: AppColors.darkDivider),
-                  ),
-                  child: TextField(
-                    controller: _youtubeUrlController,
-                    style: AppTextStyles.bodyMedium.copyWith(
-                      color: Colors.white,
-                    ),
-                    decoration: InputDecoration(
-                      hintText: 'Paste YouTube URL...',
-                      hintStyle: AppTextStyles.bodyMedium.copyWith(
-                        color: AppColors.grey600,
-                      ),
-                      prefixIcon: const Icon(
-                        Icons.link_rounded,
-                        color: AppColors.grey500,
-                      ),
-                      border: InputBorder.none,
-                      enabledBorder: InputBorder.none,
-                      focusedBorder: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 14),
-                KGradientButton(
-                  text: 'Import Audio',
-                  icon: Icons.download_rounded,
-                  height: 48,
-                  onPressed: () {},
-                ),
-              ],
-            ),
+          Text('Import from Other Platforms', style: AppTextStyles.headlineSmall),
+          const SizedBox(height: 8),
+          Text(
+            'Paste a YouTube URL or RSS link to add it to your library.',
+            style: AppTextStyles.bodyMedium.copyWith(color: AppColors.grey500),
           ),
-
-          const SizedBox(height: 24),
-
-          // RSS Import
-          Text('Other Sources', style: AppTextStyles.headlineSmall),
+          const SizedBox(height: 32),
+          Text('YouTube Video/Playlist', style: AppTextStyles.titleSmall),
           const SizedBox(height: 12),
-          _ImportOption(
-            icon: Icons.rss_feed_rounded,
-            label: 'RSS Feed',
-            desc: 'Import from any RSS URL',
-            color: AppColors.accent,
+          KSearchInput(
+            controller: _youtubeUrlController,
+            placeholder: 'https://youtube.com/watch?v=...',
           ),
-          _ImportOption(
-            icon: Icons.podcasts_rounded,
-            label: 'Apple Podcasts',
-            desc: 'Import your subscriptions',
-            color: AppColors.jade,
+          const SizedBox(height: 16),
+          KGradientButton(
+            text: 'Import YouTube Content',
+            onPressed: () {
+              // TODO: Implement YouTube import
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('YouTube import started...')),
+              );
+            },
           ),
-          _ImportOption(
-            icon: Icons.music_note_rounded,
-            label: 'Spotify',
-            desc: 'Import your liked shows',
-            color: AppColors.primary,
+          const SizedBox(height: 40),
+          Text('Direct RSS Feed', style: AppTextStyles.titleSmall),
+          const SizedBox(height: 12),
+          const KSearchInput(
+            placeholder: 'https://example.com/feed.xml',
+          ),
+          const SizedBox(height: 16),
+          KGradientButton(
+            text: 'Sync RSS Feed',
+            onPressed: () {
+              // TODO: Implement RSS sync
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('RSS sync started...')),
+              );
+            },
           ),
         ],
       ),
@@ -601,50 +423,26 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen>
   }
 }
 
-class _ImportOption extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final String desc;
-  final Color color;
+class _SliverAppBarDelegate extends SliverPersistentHeaderDelegate {
+  _SliverAppBarDelegate(this._tabBar);
 
-  const _ImportOption({
-    required this.icon,
-    required this.label,
-    required this.desc,
-    required this.color,
-  });
+  final TabBar _tabBar;
 
   @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 10),
-      child: KCard(
-        onTap: () {},
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(icon, color: color, size: 22),
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(label, style: Theme.of(context).textTheme.titleSmall),
-                  Text(desc, style: AppTextStyles.caption),
-                ],
-              ),
-            ),
-            Icon(Icons.chevron_right_rounded, color: AppColors.grey500),
-          ],
-        ),
-      ),
+  double get minExtent => _tabBar.preferredSize.height;
+  @override
+  double get maxExtent => _tabBar.preferredSize.height;
+
+  @override
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+    return Container(
+      color: AppColors.darkBackground,
+      child: _tabBar,
     );
+  }
+
+  @override
+  bool shouldRebuild(_SliverAppBarDelegate oldDelegate) {
+    return false;
   }
 }

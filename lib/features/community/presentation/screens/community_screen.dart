@@ -11,7 +11,6 @@ class CommunityScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-
     final episodes = SampleData.sampleEpisodes;
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -22,7 +21,9 @@ class CommunityScreen extends StatelessWidget {
             floating: true,
             pinned: true,
             expandedHeight: 130,
-            backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
+            backgroundColor: isDark
+                ? AppColors.darkBackground
+                : AppColors.lightBackground,
             flexibleSpace: FlexibleSpaceBar(
               background: SafeArea(
                 child: Padding(
@@ -39,7 +40,9 @@ class CommunityScreen extends StatelessWidget {
                       const SizedBox(height: 4),
                       Text(
                         'Learn together, grow together',
-                        style: AppTextStyles.bodySmall.copyWith(color: AppColors.grey500),
+                        style: AppTextStyles.bodySmall.copyWith(
+                          color: AppColors.grey500,
+                        ),
                       ),
                     ],
                   ),
@@ -55,15 +58,27 @@ class CommunityScreen extends StatelessWidget {
               child: Row(
                 children: [
                   Expanded(
-                    child: _StatChip(label: 'Listeners', value: '12.4K', gradient: AppColors.primaryGradient),
+                    child: _StatChip(
+                      label: 'Listeners',
+                      value: '12.4K',
+                      gradient: AppColors.primaryGradient,
+                    ),
                   ),
                   const SizedBox(width: 8),
                   Expanded(
-                    child: _StatChip(label: 'Reflections', value: '3.2K', gradient: AppColors.goldGradient),
+                    child: _StatChip(
+                      label: 'Reflections',
+                      value: '3.2K',
+                      gradient: AppColors.goldGradient,
+                    ),
                   ),
                   const SizedBox(width: 8),
                   Expanded(
-                    child: _StatChip(label: 'Cities', value: '85', gradient: AppColors.jadeGradient),
+                    child: _StatChip(
+                      label: 'Cities',
+                      value: '85',
+                      gradient: AppColors.jadeGradient,
+                    ),
                   ),
                 ],
               ),
@@ -72,7 +87,10 @@ class CommunityScreen extends StatelessWidget {
 
           // ── Trending by City ──
           SliverToBoxAdapter(
-            child: KSectionHeader(title: '🏙️ Trending by City', actionText: 'View all'),
+            child: KSectionHeader(
+              title: '🏙️ Trending by City',
+              actionText: 'View all',
+            ),
           ),
           SliverToBoxAdapter(
             child: SizedBox(
@@ -92,9 +110,7 @@ class CommunityScreen extends StatelessWidget {
           ),
 
           // ── Popular Saves ──
-          SliverToBoxAdapter(
-            child: KSectionHeader(title: '🔥 Popular Saves'),
-          ),
+          SliverToBoxAdapter(child: KSectionHeader(title: '🔥 Popular Saves')),
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -126,9 +142,24 @@ class CommunityScreen extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 20),
               child: Column(
                 children: [
-                  _FriendActivity(name: 'Arjun Singh', action: 'saved a clip from', episode: 'AI Revolution in India', time: '2h ago'),
-                  _FriendActivity(name: 'Priya Sharma', action: 'shared a reflection on', episode: 'Startup Life', time: '3h ago'),
-                  _FriendActivity(name: 'Rahul Kumar', action: 'is listening to', episode: 'Mindfulness for Coders', time: 'Now'),
+                  _FriendActivity(
+                    name: 'Arjun Singh',
+                    action: 'saved a clip from',
+                    episode: 'AI Revolution in India',
+                    time: '2h ago',
+                  ),
+                  _FriendActivity(
+                    name: 'Priya Sharma',
+                    action: 'shared a reflection on',
+                    episode: 'Startup Life',
+                    time: '3h ago',
+                  ),
+                  _FriendActivity(
+                    name: 'Rahul Kumar',
+                    action: 'is listening to',
+                    episode: 'Mindfulness for Coders',
+                    time: 'Now',
+                  ),
                 ],
               ),
             ),
@@ -146,7 +177,11 @@ class _StatChip extends StatelessWidget {
   final String value;
   final Gradient gradient;
 
-  const _StatChip({required this.label, required this.value, required this.gradient});
+  const _StatChip({
+    required this.label,
+    required this.value,
+    required this.gradient,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -160,11 +195,18 @@ class _StatChip extends StatelessWidget {
         children: [
           Text(
             value,
-            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 18),
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.w800,
+              fontSize: 18,
+            ),
           ),
           Text(
             label,
-            style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 11),
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.7),
+              fontSize: 11,
+            ),
           ),
         ],
       ),
@@ -177,7 +219,11 @@ class _CityCard extends StatelessWidget {
   final String listeners;
   final String emoji;
 
-  const _CityCard({required this.city, required this.listeners, required this.emoji});
+  const _CityCard({
+    required this.city,
+    required this.listeners,
+    required this.emoji,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -191,8 +237,14 @@ class _CityCard extends StatelessWidget {
           children: [
             Text(emoji, style: const TextStyle(fontSize: 28)),
             const SizedBox(height: 6),
-            Text(city, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
-            Text('$listeners 🎧', style: TextStyle(fontSize: 10, color: AppColors.grey500)),
+            Text(
+              city,
+              style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
+            ),
+            Text(
+              '$listeners 🎧',
+              style: TextStyle(fontSize: 10, color: AppColors.grey500),
+            ),
           ],
         ),
       ),
@@ -206,7 +258,12 @@ class _FriendActivity extends StatelessWidget {
   final String episode;
   final String time;
 
-  const _FriendActivity({required this.name, required this.action, required this.episode, required this.time});
+  const _FriendActivity({
+    required this.name,
+    required this.action,
+    required this.episode,
+    required this.time,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -224,7 +281,13 @@ class _FriendActivity extends StatelessWidget {
                 gradient: AppColors.primaryGradient,
               ),
               child: Center(
-                child: Text(name[0], style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+                child: Text(
+                  name[0],
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
               ),
             ),
             const SizedBox(width: 12),
@@ -233,9 +296,18 @@ class _FriendActivity extends StatelessWidget {
                 text: TextSpan(
                   style: Theme.of(context).textTheme.bodySmall,
                   children: [
-                    TextSpan(text: name, style: const TextStyle(fontWeight: FontWeight.w700)),
+                    TextSpan(
+                      text: name,
+                      style: const TextStyle(fontWeight: FontWeight.w700),
+                    ),
                     TextSpan(text: ' $action '),
-                    TextSpan(text: episode, style: const TextStyle(fontWeight: FontWeight.w600, color: AppColors.primary)),
+                    TextSpan(
+                      text: episode,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.primary,
+                      ),
+                    ),
                   ],
                 ),
               ),

@@ -4,28 +4,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import '../core/models/models.dart';
 
+// Providers for the service
 final supabaseServiceProvider = Provider<SupabaseService>((ref) {
   return SupabaseService();
-});
-
-final episodeFeedProvider = FutureProvider.family<List<Episode>, String?>((ref, category) async {
-  return ref.watch(supabaseServiceProvider).getFeed(category: category);
-});
-
-final userProfileProvider = FutureProvider<UserProfile?>((ref) async {
-  return ref.watch(supabaseServiceProvider).getProfile();
-});
-
-final trendingEpisodesProvider = FutureProvider<List<Episode>>((ref) async {
-  return ref.watch(supabaseServiceProvider).getTrending();
-});
-
-final savedClipsProvider = FutureProvider<List<SavedClip>>((ref) async {
-  return ref.watch(supabaseServiceProvider).getSavedClips();
-});
-
-final reflectionsProvider = FutureProvider.family<List<Reflection>, String?>((ref, city) async {
-  return ref.watch(supabaseServiceProvider).getReflections(city: city);
 });
 
 /// Supabase service for all backend operations
@@ -43,7 +24,11 @@ class SupabaseService {
   }
 
   Future<AuthResponse> verifyOtp(String phone, String token) async {
-    return await _client.auth.verifyOTP(phone: phone, token: token, type: OtpType.sms);
+    return await _client.auth.verifyOTP(
+      phone: phone,
+      token: token,
+      type: OtpType.sms,
+    );
   }
 
   Future<AuthResponse> signInWithGoogle() async {
@@ -52,7 +37,14 @@ class SupabaseService {
   }
 
   Future<void> signOut() async {
-    await _client.auth.signOut();
+    try {
+      await _client.auth.signOut();
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(_localProfileKey);
+      print('Sign out successful');
+    } catch (e) {
+      print('Error during sign out: $e');
+    }
   }
 
   User? get currentUser => _client.auth.currentUser;
@@ -116,10 +108,18 @@ class SupabaseService {
         final currentProfile = await getProfile();
         if (currentProfile != null) {
           final Map<String, dynamic> newProfileData = {
-            'languages': updates.containsKey('languages') ? updates['languages'] : currentProfile.languages,
-            'interests': updates.containsKey('interests') ? updates['interests'] : currentProfile.interests,
-            'commuteDurationMin': updates.containsKey('commute_duration_min') ? updates['commute_duration_min'] : currentProfile.commuteDurationMin,
-            'onboardingCompleted': updates.containsKey('onboarding_completed') ? updates['onboarding_completed'] : currentProfile.onboardingCompleted,
+            'languages': updates.containsKey('languages')
+                ? updates['languages']
+                : currentProfile.languages,
+            'interests': updates.containsKey('interests')
+                ? updates['interests']
+                : currentProfile.interests,
+            'commuteDurationMin': updates.containsKey('commute_duration_min')
+                ? updates['commute_duration_min']
+                : currentProfile.commuteDurationMin,
+            'onboardingCompleted': updates.containsKey('onboarding_completed')
+                ? updates['onboarding_completed']
+                : currentProfile.onboardingCompleted,
           };
           await prefs.setString(_localProfileKey, jsonEncode(newProfileData));
         }
@@ -128,12 +128,9 @@ class SupabaseService {
       }
       return;
     }
-    
+
     try {
-      await _client
-          .from('profiles')
-          .update(updates)
-          .eq('id', currentUser!.id);
+      await _client.from('profiles').update(updates).eq('id', currentUser!.id);
     } catch (e) {
       print('Failed to update profile: $e');
     }
@@ -196,7 +193,7 @@ class SupabaseService {
         'import-youtube',
         body: {'youtubeUrl': youtubeUrl},
       );
-      
+
       final data = response.data;
       if (data != null && data['success'] == true) {
         return Episode.fromJson(data['episode']);
@@ -205,13 +202,14 @@ class SupabaseService {
       }
     } catch (e) {
       if (e.toString().contains('401')) {
-        print('YouTube Import Failed with 401: Ensure function is deployed with --no-verify-jwt');
+        print(
+          'YouTube Import Failed with 401: Ensure function is deployed with --no-verify-jwt',
+        );
       }
       print('Failed to import YouTube video: $e');
       rethrow;
     }
   }
-
 
   // ============ SAVED CLIPS ============
 
@@ -234,7 +232,10 @@ class SupabaseService {
     });
 
     // Increment save count on episode
-    await _client.rpc('increment_save_count', params: {'episode_id_param': episodeId});
+    await _client.rpc(
+      'increment_save_count',
+      params: {'episode_id_param': episodeId},
+    );
 
     // Award coins for saving
     await awardCoins(5, 'Saved a clip 📌');
@@ -277,7 +278,10 @@ class SupabaseService {
     await awardCoins(15, 'Shared a reflection ☕');
   }
 
-  Future<List<Reflection>> getReflections({String? city, int limit = 20}) async {
+  Future<List<Reflection>> getReflections({
+    String? city,
+    int limit = 20,
+  }) async {
     var query = _client
         .from('reflections')
         .select('*, profiles(name, avatar_url)')
@@ -287,14 +291,16 @@ class SupabaseService {
       query = query.eq('city', city);
     }
 
-    final data = await query
-        .order('created_at', ascending: false)
-        .limit(limit);
-    return data.map<Reflection>((e) => Reflection.fromJson({
-          ...e,
-          'user_name': e['profiles']?['name'] ?? 'Anonymous',
-          'user_avatar_url': e['profiles']?['avatar_url'],
-        })).toList();
+    final data = await query.order('created_at', ascending: false).limit(limit);
+    return data
+        .map<Reflection>(
+          (e) => Reflection.fromJson({
+            ...e,
+            'user_name': e['profiles']?['name'] ?? 'Anonymous',
+            'user_avatar_url': e['profiles']?['avatar_url'],
+          }),
+        )
+        .toList();
   }
 
   Future<void> upvoteReflection(String reflectionId) async {
@@ -343,7 +349,9 @@ class SupabaseService {
         .eq('user_id', currentUser!.id)
         .order('created_at', ascending: false)
         .limit(50);
-    return data.map<CoinTransaction>((e) => CoinTransaction.fromJson(e)).toList();
+    return data
+        .map<CoinTransaction>((e) => CoinTransaction.fromJson(e))
+        .toList();
   }
 
   // ============ STREAKS ============
@@ -359,10 +367,15 @@ class SupabaseService {
 
   // ============ LEADERBOARD ============
 
-  Future<List<LeaderboardEntry>> getLeaderboard({String? city, int limit = 20}) async {
+  Future<List<LeaderboardEntry>> getLeaderboard({
+    String? city,
+    int limit = 20,
+  }) async {
     var query = _client
         .from('leaderboard_weekly')
-        .select('*, profiles(name, avatar_url, pahalwan_rank, street_cred_score)');
+        .select(
+          '*, profiles(name, avatar_url, pahalwan_rank, street_cred_score)',
+        );
 
     if (city != null) {
       query = query.eq('city', city);
@@ -392,12 +405,16 @@ class SupabaseService {
     String? description,
     bool isCollaborative = false,
   }) async {
-    final playlist = await _client.from('playlists').insert({
-      'name': name,
-      'description': description,
-      'created_by': currentUser!.id,
-      'is_collaborative': isCollaborative,
-    }).select().single();
+    final playlist = await _client
+        .from('playlists')
+        .insert({
+          'name': name,
+          'description': description,
+          'created_by': currentUser!.id,
+          'is_collaborative': isCollaborative,
+        })
+        .select()
+        .single();
 
     // Add creator as owner
     await _client.from('playlist_members').insert({
@@ -424,33 +441,46 @@ class SupabaseService {
 
   // ============ REALTIME ============
 
-  RealtimeChannel subscribeToReflections(void Function(Map<String, dynamic>) onData) {
-    return _client.channel('reflections').onPostgresChanges(
-      event: PostgresChangeEvent.insert,
-      schema: 'public',
-      table: 'reflections',
-      callback: (payload) => onData(payload.newRecord),
-    ).subscribe();
+  RealtimeChannel subscribeToReflections(
+    void Function(Map<String, dynamic>) onData,
+  ) {
+    return _client
+        .channel('reflections')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.insert,
+          schema: 'public',
+          table: 'reflections',
+          callback: (payload) => onData(payload.newRecord),
+        )
+        .subscribe();
   }
 
-  RealtimeChannel subscribeToLeaderboard(void Function(Map<String, dynamic>) onData) {
-    return _client.channel('leaderboard').onPostgresChanges(
-      event: PostgresChangeEvent.all,
-      schema: 'public',
-      table: 'leaderboard_weekly',
-      callback: (payload) => onData(payload.newRecord),
-    ).subscribe();
+  RealtimeChannel subscribeToLeaderboard(
+    void Function(Map<String, dynamic>) onData,
+  ) {
+    return _client
+        .channel('leaderboard')
+        .onPostgresChanges(
+          event: PostgresChangeEvent.all,
+          schema: 'public',
+          table: 'leaderboard_weekly',
+          callback: (payload) => onData(payload.newRecord),
+        )
+        .subscribe();
   }
 
   // ============ EXTERNAL PODCAST INTEGRATION ============
 
-  Future<List<PodcastSearchResult>> searchExternalPodcasts(String query, {String provider = 'itunes'}) async {
+  Future<List<PodcastSearchResult>> searchExternalPodcasts(
+    String query, {
+    String provider = 'itunes',
+  }) async {
     try {
       final response = await _client.functions.invoke(
         'search-podcasts',
         body: {'query': query, 'provider': provider},
       );
-      
+
       final data = response.data;
       if (data != null && data['success'] == true) {
         final resultsList = data['results'] as List;
@@ -459,43 +489,55 @@ class SupabaseService {
       return [];
     } catch (e) {
       if (e.toString().contains('401')) {
-        print('Podcast Search Failed with 401: This usually means the Edge Function needs to be deployed with --no-verify-jwt');
+        print(
+          'Podcast Search Failed with 401: This usually means the Edge Function needs to be deployed with --no-verify-jwt',
+        );
       }
       print('Failed to search external podcasts: $e');
+      if (e.toString().contains('401')) {
+        throw Exception('Access Denied (401): Ensure the search-podcasts Edge Function is deployed with --no-verify-jwt');
+      } else if (e.toString().contains('404')) {
+        throw Exception('Function Not Found (404): Ensure the search-podcasts Edge Function is deployed');
+      }
       rethrow; // Rethrow so UI can show the error
     }
   }
 
-
-  Future<List<Episode>> syncAndGetEpisodes(String rssUrl, {String? category}) async {
+  Future<List<Episode>> syncAndGetEpisodes(
+    String rssUrl, {
+    String? category,
+  }) async {
     try {
+      print('Calling sync-podcast Edge Function for: $rssUrl');
       final response = await _client.functions.invoke(
         'sync-podcast',
         body: {'rssUrl': rssUrl, 'category': category ?? 'General'},
       );
-      
+
       final data = response.data;
       if (data != null && data['success'] == true) {
-        // Fetch the episodes we just synced from the database
         final podcastId = data['podcast']['id'];
-        final episodesData = await _client
-            .from('episodes')
-            .select('*, podcasts(title, image_url)')
-            .eq('podcast_id', podcastId)
-            .order('published_at', ascending: false)
-            .limit(20);
-            
-        return episodesData.map<Episode>((e) => Episode.fromJson(e)).toList();
+        print('Podcast synced successfully. ID: $podcastId.');
+        
+        final List<dynamic> episodesJson = data['episodes'] ?? [];
+        return episodesJson.map<Episode>((e) => Episode.fromJson(e)).toList();
       }
       return [];
     } catch (e) {
+      print('SYNC ERROR TYPE: ${e.runtimeType}');
+      if (e is PostgrestException) {
+        print('Postgrest Error: ${e.message} (Code: ${e.code})');
+      }
       if (e.toString().contains('401')) {
-        print('Sync Podcast Failed with 401: Ensure function is deployed with --no-verify-jwt');
+        print(
+          'Sync Podcast Failed with 401: Ensure function is deployed with --no-verify-jwt',
+        );
       }
       print('Failed to sync podcast: $e');
+      if (e.toString().contains('401')) {
+        throw Exception('Access Denied (401): Ensure the sync-podcast Edge Function is deployed with --no-verify-jwt');
+      }
       rethrow;
     }
   }
-
 }
-

@@ -42,9 +42,10 @@ class _KGradientButtonState extends State<KGradientButton>
       duration: const Duration(milliseconds: 120),
       vsync: this,
     );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.95).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
+    _scaleAnimation = Tween<double>(
+      begin: 1.0,
+      end: 0.95,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   @override
@@ -57,10 +58,8 @@ class _KGradientButtonState extends State<KGradientButton>
   Widget build(BuildContext context) {
     return AnimatedBuilder(
       animation: _scaleAnimation,
-      builder: (context, child) => Transform.scale(
-        scale: _scaleAnimation.value,
-        child: child,
-      ),
+      builder: (context, child) =>
+          Transform.scale(scale: _scaleAnimation.value, child: child),
       child: GestureDetector(
         onTapDown: (_) => _controller.forward(),
         onTapUp: (_) {
@@ -102,7 +101,9 @@ class _KGradientButtonState extends State<KGradientButton>
                       ],
                       Text(
                         widget.text,
-                        style: AppTextStyles.button.copyWith(color: Colors.white),
+                        style: AppTextStyles.button.copyWith(
+                          color: Colors.white,
+                        ),
                       ),
                     ],
                   ),
@@ -243,7 +244,11 @@ class KEpisodeCard extends StatelessWidget {
                     border: Border.all(color: Colors.white30, width: 1),
                   ),
                 ),
-                const Icon(Icons.headphones_rounded, color: Colors.white, size: 24),
+                const Icon(
+                  Icons.headphones_rounded,
+                  color: Colors.white,
+                  size: 24,
+                ),
               ],
             ),
           ),
@@ -254,7 +259,9 @@ class KEpisodeCard extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -269,7 +276,10 @@ class KEpisodeCard extends StatelessWidget {
                 Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 3,
+                      ),
                       decoration: BoxDecoration(
                         color: AppColors.primary.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(8),
@@ -284,14 +294,27 @@ class KEpisodeCard extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    Icon(Icons.access_time_rounded, size: 12, color: AppColors.grey500),
+                    Icon(
+                      Icons.access_time_rounded,
+                      size: 12,
+                      color: AppColors.grey500,
+                    ),
                     const SizedBox(width: 3),
                     Text(duration, style: theme.textTheme.labelSmall),
                     if (saveCount > 0) ...[
                       const SizedBox(width: 8),
-                      Icon(Icons.bookmark_rounded, size: 12, color: AppColors.accent),
+                      Icon(
+                        Icons.bookmark_rounded,
+                        size: 12,
+                        color: AppColors.accent,
+                      ),
                       const SizedBox(width: 3),
-                      Text('$saveCount', style: theme.textTheme.labelSmall?.copyWith(color: AppColors.accent)),
+                      Text(
+                        '$saveCount',
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          color: AppColors.accent,
+                        ),
+                      ),
                     ],
                   ],
                 ),
@@ -313,7 +336,11 @@ class KEpisodeCard extends StatelessWidget {
                   ),
                 ],
               ),
-              child: const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 20),
+              child: const Icon(
+                Icons.play_arrow_rounded,
+                color: Colors.white,
+                size: 20,
+              ),
             ),
           ),
         ],
@@ -391,7 +418,11 @@ class KMiniPlayer extends StatelessWidget {
                             ),
                           ],
                         ),
-                        child: const Icon(Icons.headphones_rounded, color: Colors.white, size: 20),
+                        child: const Icon(
+                          Icons.headphones_rounded,
+                          color: Colors.white,
+                          size: 20,
+                        ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
@@ -400,13 +431,20 @@ class KMiniPlayer extends StatelessWidget {
                           children: [
                             Text(
                               title,
-                              style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                              ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
                             Text(
                               podcastName,
-                              style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 11),
+                              style: TextStyle(
+                                color: Colors.white.withValues(alpha: 0.5),
+                                fontSize: 11,
+                              ),
                               maxLines: 1,
                             ),
                           ],
@@ -415,14 +453,20 @@ class KMiniPlayer extends StatelessWidget {
                       IconButton(
                         onPressed: onPlayPause,
                         icon: Icon(
-                          isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
+                          isPlaying
+                              ? Icons.pause_rounded
+                              : Icons.play_arrow_rounded,
                           color: Colors.white,
                           size: 28,
                         ),
                       ),
                       IconButton(
                         onPressed: () {},
-                        icon: const Icon(Icons.skip_next_rounded, color: Colors.white70, size: 24),
+                        icon: const Icon(
+                          Icons.skip_next_rounded,
+                          color: Colors.white70,
+                          size: 24,
+                        ),
                       ),
                     ],
                   ),
@@ -432,7 +476,9 @@ class KMiniPlayer extends StatelessWidget {
                     child: LinearProgressIndicator(
                       value: progress,
                       backgroundColor: Colors.white.withValues(alpha: 0.12),
-                      valueColor: const AlwaysStoppedAnimation(AppColors.primary),
+                      valueColor: const AlwaysStoppedAnimation(
+                        AppColors.primary,
+                      ),
                       minHeight: 3,
                     ),
                   ),
@@ -491,7 +537,9 @@ class KStatCard extends StatelessWidget {
           const SizedBox(height: 2),
           Text(
             label,
-            style: theme.textTheme.bodySmall?.copyWith(color: AppColors.grey500),
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: AppColors.grey500,
+            ),
           ),
         ],
       ),
@@ -540,7 +588,9 @@ class KSectionHeader extends StatelessWidget {
               onPressed: onAction,
               child: Text(
                 actionText!,
-                style: AppTextStyles.labelMedium.copyWith(color: AppColors.primary),
+                style: AppTextStyles.labelMedium.copyWith(
+                  color: AppColors.primary,
+                ),
               ),
             ),
         ],
@@ -586,11 +636,18 @@ class KSearchInput extends StatelessWidget {
         ),
         decoration: InputDecoration(
           hintText: hintText,
-          prefixIcon: Icon(Icons.search_rounded, color: AppColors.grey500, size: 22),
+          prefixIcon: Icon(
+            Icons.search_rounded,
+            color: AppColors.grey500,
+            size: 22,
+          ),
           border: InputBorder.none,
           enabledBorder: InputBorder.none,
           focusedBorder: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 14,
+          ),
         ),
       ),
     );

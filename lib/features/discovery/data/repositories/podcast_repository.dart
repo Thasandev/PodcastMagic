@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/models/models.dart';
-import '../../../../services/supabase_service.dart';
+import 'package:kaan/core/models/models.dart';
+import 'package:kaan/services/supabase_service.dart';
 
 final podcastRepositoryProvider = Provider<PodcastRepository>((ref) {
   return PodcastRepository(ref.watch(supabaseServiceProvider));

@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 
-
 class EditProfileScreen extends StatefulWidget {
   const EditProfileScreen({super.key});
 
@@ -13,7 +12,9 @@ class EditProfileScreen extends StatefulWidget {
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
   final _nameController = TextEditingController(text: 'Arjun Mehra');
-  final _bioController = TextEditingController(text: 'Podcast junkie. Learning while commuting 🚇');
+  final _bioController = TextEditingController(
+    text: 'Podcast junkie. Learning while commuting 🚇',
+  );
 
   @override
   void dispose() {
@@ -31,11 +32,19 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           TextButton(
             onPressed: () {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Profile saved ✓'), backgroundColor: AppColors.darkCard),
+                const SnackBar(
+                  content: Text('Profile saved ✓'),
+                  backgroundColor: AppColors.darkCard,
+                ),
               );
               context.pop();
             },
-            child: Text('Save', style: AppTextStyles.labelLarge.copyWith(color: AppColors.primary)),
+            child: Text(
+              'Save',
+              style: AppTextStyles.labelLarge.copyWith(
+                color: AppColors.primary,
+              ),
+            ),
           ),
         ],
       ),
@@ -54,7 +63,10 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       shape: BoxShape.circle,
                       gradient: AppColors.primaryGradient,
                       boxShadow: [
-                        BoxShadow(color: AppColors.primary.withValues(alpha: 0.3), blurRadius: 20),
+                        BoxShadow(
+                          color: AppColors.primary.withValues(alpha: 0.3),
+                          blurRadius: 20,
+                        ),
                       ],
                     ),
                     padding: const EdgeInsets.all(3),
@@ -66,7 +78,9 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       child: Center(
                         child: Text(
                           'A',
-                          style: AppTextStyles.displayMedium.copyWith(color: Colors.white),
+                          style: AppTextStyles.displayMedium.copyWith(
+                            color: Colors.white,
+                          ),
                         ),
                       ),
                     ),
@@ -81,7 +95,11 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         shape: BoxShape.circle,
                         border: Border.all(color: AppColors.darkDivider),
                       ),
-                      child: const Icon(Icons.camera_alt_rounded, color: AppColors.primary, size: 18),
+                      child: const Icon(
+                        Icons.camera_alt_rounded,
+                        color: AppColors.primary,
+                        size: 18,
+                      ),
                     ),
                   ),
                 ],
@@ -133,7 +151,10 @@ class _FormField extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: AppTextStyles.overline.copyWith(color: AppColors.grey500)),
+        Text(
+          label,
+          style: AppTextStyles.overline.copyWith(color: AppColors.grey500),
+        ),
         const SizedBox(height: 8),
         Container(
           decoration: BoxDecoration(
@@ -150,7 +171,10 @@ class _FormField extends StatelessWidget {
               border: InputBorder.none,
               enabledBorder: InputBorder.none,
               focusedBorder: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 16,
+              ),
             ),
           ),
         ),

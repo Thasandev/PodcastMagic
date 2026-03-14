@@ -19,7 +19,7 @@ class AuthRepository {
   User? get currentUser => _auth.currentUser;
 
   /// Starts the Phone Number Verification process.
-  /// 
+  ///
   /// [phoneNumber] should be in E.164 format (e.g., '+919999999999').
   Future<void> sendOTP({
     required String phoneNumber,
@@ -67,7 +67,9 @@ class AuthRepository {
     return await _signInWithCredential(credential);
   }
 
-  Future<UserCredential> _signInWithCredential(AuthCredential credential) async {
+  Future<UserCredential> _signInWithCredential(
+    AuthCredential credential,
+  ) async {
     return await _auth.signInWithCredential(credential);
   }
 

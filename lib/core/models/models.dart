@@ -66,32 +66,34 @@ class UserProfile {
       city: json['city'] as String?,
       pinCode: json['pin_code'] as String?,
       onboardingCompleted: json['onboarding_completed'] as bool? ?? false,
-      createdAt: DateTime.parse(json['created_at'] as String? ?? DateTime.now().toIso8601String()),
+      createdAt: DateTime.parse(
+        json['created_at'] as String? ?? DateTime.now().toIso8601String(),
+      ),
     );
   }
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'name': name,
-        'email': email,
-        'phone': phone,
-        'avatar_url': avatarUrl,
-        'bio': bio,
-        'languages': languages,
-        'interests': interests,
-        'commute_duration_min': commuteDurationMin,
-        'preferred_voice': preferredVoice,
-        'total_listening_minutes': totalListeningMinutes,
-        'current_streak': currentStreak,
-        'longest_streak': longestStreak,
-        'kaan_coins': kaanCoins,
-        'pahalwan_rank': pahalwanRank,
-        'street_cred_score': streetCredScore,
-        'city': city,
-        'pin_code': pinCode,
-        'onboarding_completed': onboardingCompleted,
-        'created_at': createdAt.toIso8601String(),
-      };
+    'id': id,
+    'name': name,
+    'email': email,
+    'phone': phone,
+    'avatar_url': avatarUrl,
+    'bio': bio,
+    'languages': languages,
+    'interests': interests,
+    'commute_duration_min': commuteDurationMin,
+    'preferred_voice': preferredVoice,
+    'total_listening_minutes': totalListeningMinutes,
+    'current_streak': currentStreak,
+    'longest_streak': longestStreak,
+    'kaan_coins': kaanCoins,
+    'pahalwan_rank': pahalwanRank,
+    'street_cred_score': streetCredScore,
+    'city': city,
+    'pin_code': pinCode,
+    'onboarding_completed': onboardingCompleted,
+    'created_at': createdAt.toIso8601String(),
+  };
 
   UserProfile copyWith({
     String? name,
@@ -124,7 +126,8 @@ class UserProfile {
       interests: interests ?? this.interests,
       commuteDurationMin: commuteDurationMin ?? this.commuteDurationMin,
       preferredVoice: preferredVoice ?? this.preferredVoice,
-      totalListeningMinutes: totalListeningMinutes ?? this.totalListeningMinutes,
+      totalListeningMinutes:
+          totalListeningMinutes ?? this.totalListeningMinutes,
       currentStreak: currentStreak ?? this.currentStreak,
       longestStreak: longestStreak ?? this.longestStreak,
       kaanCoins: kaanCoins ?? this.kaanCoins,
@@ -183,7 +186,8 @@ class Episode {
       language: json['language'] as String? ?? 'en',
       category: json['category'] as String,
       aiSummary: json['ai_summary'] as String?,
-      chapters: (json['chapters'] as List<dynamic>?)
+      chapters:
+          (json['chapters'] as List<dynamic>?)
               ?.map((c) => EpisodeChapter.fromJson(c))
               .toList() ??
           [],
@@ -348,7 +352,10 @@ class LeaderboardEntry {
     this.isCurrentUser = false,
   });
 
-  factory LeaderboardEntry.fromJson(Map<String, dynamic> json, {bool isCurrentUser = false}) {
+  factory LeaderboardEntry.fromJson(
+    Map<String, dynamic> json, {
+    bool isCurrentUser = false,
+  }) {
     return LeaderboardEntry(
       rank: json['rank'] as int,
       userId: json['user_id'] as String,
@@ -478,4 +485,3 @@ class PodcastSearchResult {
     );
   }
 }
-

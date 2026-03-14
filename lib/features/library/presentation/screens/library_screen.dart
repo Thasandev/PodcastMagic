@@ -38,7 +38,9 @@ class _LibraryScreenState extends State<LibraryScreen>
             floating: true,
             pinned: true,
             expandedHeight: 130,
-            backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
+            backgroundColor: isDark
+                ? AppColors.darkBackground
+                : AppColors.lightBackground,
             flexibleSpace: FlexibleSpaceBar(
               background: SafeArea(
                 child: Padding(
@@ -55,7 +57,9 @@ class _LibraryScreenState extends State<LibraryScreen>
                       const SizedBox(height: 4),
                       Text(
                         'Your curated collection',
-                        style: AppTextStyles.bodySmall.copyWith(color: AppColors.grey500),
+                        style: AppTextStyles.bodySmall.copyWith(
+                          color: AppColors.grey500,
+                        ),
                       ),
                     ],
                   ),
@@ -103,7 +107,11 @@ class _LibraryScreenState extends State<LibraryScreen>
 
   Widget _buildSavedTab() {
     final clips = SampleData.sampleClips;
-    if (clips.isEmpty) return _buildEmptyState('No saved clips yet', 'Tap 🎧 Suno! while listening to save clips');
+    if (clips.isEmpty)
+      return _buildEmptyState(
+        'No saved clips yet',
+        'Tap 🎧 Suno! while listening to save clips',
+      );
 
     return ListView.builder(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 120),
@@ -115,7 +123,8 @@ class _LibraryScreenState extends State<LibraryScreen>
           child: KEpisodeCard(
             title: clip.aiTitle ?? clip.episodeTitle,
             podcastName: clip.podcastName,
-            duration: '${clip.durationSeconds ~/ 60}:${(clip.durationSeconds % 60).toString().padLeft(2, '0')}',
+            duration:
+                '${clip.durationSeconds ~/ 60}:${(clip.durationSeconds % 60).toString().padLeft(2, '0')}',
             category: 'Clip',
             onTap: () {},
             onPlay: () {},
@@ -126,7 +135,11 @@ class _LibraryScreenState extends State<LibraryScreen>
   }
 
   Widget _buildPlaylistsTab() {
-    final playlists = [{'name': 'Morning Commute Mix', 'count': 8}, {'name': 'Weekend Vibes', 'count': 5}, {'name': 'Tech Deep Dives', 'count': 12}];
+    final playlists = [
+      {'name': 'Morning Commute Mix', 'count': 8},
+      {'name': 'Weekend Vibes', 'count': 5},
+      {'name': 'Tech Deep Dives', 'count': 12},
+    ];
     return ListView(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 120),
       children: [
@@ -142,14 +155,23 @@ class _LibraryScreenState extends State<LibraryScreen>
                 decoration: BoxDecoration(
                   color: AppColors.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(14),
-                  border: Border.all(color: AppColors.primary.withValues(alpha: 0.3), width: 1.5),
+                  border: Border.all(
+                    color: AppColors.primary.withValues(alpha: 0.3),
+                    width: 1.5,
+                  ),
                 ),
-                child: const Icon(Icons.add_rounded, color: AppColors.primary, size: 28),
+                child: const Icon(
+                  Icons.add_rounded,
+                  color: AppColors.primary,
+                  size: 28,
+                ),
               ),
               const SizedBox(width: 14),
               Text(
                 'Create Playlist',
-                style: AppTextStyles.labelLarge.copyWith(color: AppColors.primary),
+                style: AppTextStyles.labelLarge.copyWith(
+                  color: AppColors.primary,
+                ),
               ),
             ],
           ),
@@ -174,7 +196,9 @@ class _LibraryScreenState extends State<LibraryScreen>
                     child: Center(
                       child: Text(
                         '${playlist['count']}',
-                        style: AppTextStyles.headlineMedium.copyWith(color: Colors.white),
+                        style: AppTextStyles.headlineMedium.copyWith(
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                   ),
@@ -183,7 +207,10 @@ class _LibraryScreenState extends State<LibraryScreen>
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(playlist['name'] as String, style: Theme.of(context).textTheme.titleSmall),
+                        Text(
+                          playlist['name'] as String,
+                          style: Theme.of(context).textTheme.titleSmall,
+                        ),
                         Text(
                           '${playlist['count']} episodes',
                           style: AppTextStyles.caption,
@@ -191,11 +218,17 @@ class _LibraryScreenState extends State<LibraryScreen>
                       ],
                     ),
                   ),
-                  const Icon(Icons.chevron_right_rounded, color: AppColors.grey500),
+                  const Icon(
+                    Icons.chevron_right_rounded,
+                    color: AppColors.grey500,
+                  ),
                 ],
               ),
             ),
-          ).animate().fadeIn(delay: ((entry.key + 1) * 100).ms, duration: 400.ms);
+          ).animate().fadeIn(
+            delay: ((entry.key + 1) * 100).ms,
+            duration: 400.ms,
+          );
         }),
       ],
     );
@@ -243,12 +276,18 @@ class _LibraryScreenState extends State<LibraryScreen>
               shape: BoxShape.circle,
               border: Border.all(color: AppColors.darkDivider),
             ),
-            child: const Icon(Icons.library_music_rounded, color: AppColors.grey600, size: 36),
+            child: const Icon(
+              Icons.library_music_rounded,
+              color: AppColors.grey600,
+              size: 36,
+            ),
           ),
           const SizedBox(height: 20),
           Text(
             title,
-            style: AppTextStyles.headlineSmall.copyWith(color: AppColors.grey400),
+            style: AppTextStyles.headlineSmall.copyWith(
+              color: AppColors.grey400,
+            ),
           ),
           const SizedBox(height: 6),
           Text(

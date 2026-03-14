@@ -21,7 +21,9 @@ class ReflectionsScreen extends StatelessWidget {
             floating: true,
             pinned: true,
             expandedHeight: 130,
-            backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
+            backgroundColor: isDark
+                ? AppColors.darkBackground
+                : AppColors.lightBackground,
             flexibleSpace: FlexibleSpaceBar(
               background: SafeArea(
                 child: Padding(
@@ -38,7 +40,9 @@ class ReflectionsScreen extends StatelessWidget {
                       const SizedBox(height: 4),
                       Text(
                         'Community wisdom, shared aloud',
-                        style: AppTextStyles.bodySmall.copyWith(color: AppColors.grey500),
+                        style: AppTextStyles.bodySmall.copyWith(
+                          color: AppColors.grey500,
+                        ),
                       ),
                     ],
                   ),
@@ -54,101 +58,139 @@ class ReflectionsScreen extends StatelessWidget {
               child: Wrap(
                 spacing: 8,
                 runSpacing: 8,
-                children: ['📍 Mumbai', '📍 Delhi', '📍 Bangalore', '📍 Chennai'].map((city) {
-                  return Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: AppColors.darkCard,
-                      borderRadius: BorderRadius.circular(24),
-                      border: Border.all(color: AppColors.darkDivider),
-                    ),
-                    child: Text(
-                      city,
-                      style: AppTextStyles.labelMedium.copyWith(color: AppColors.grey300),
-                    ),
-                  );
-                }).toList(),
+                children:
+                    ['📍 Mumbai', '📍 Delhi', '📍 Bangalore', '📍 Chennai'].map(
+                      (city) {
+                        return Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 8,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.darkCard,
+                            borderRadius: BorderRadius.circular(24),
+                            border: Border.all(color: AppColors.darkDivider),
+                          ),
+                          child: Text(
+                            city,
+                            style: AppTextStyles.labelMedium.copyWith(
+                              color: AppColors.grey300,
+                            ),
+                          ),
+                        );
+                      },
+                    ).toList(),
               ),
             ),
           ),
 
           // ── Reflections Feed ──
           SliverList(
-            delegate: SliverChildBuilderDelegate(
-              (context, index) {
-                final ref = reflections[index % reflections.length];
-                return Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
-                  child: KCard(
-                    padding: const EdgeInsets.all(18),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
+            delegate: SliverChildBuilderDelegate((context, index) {
+              final ref = reflections[index % reflections.length];
+              return Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 5,
+                ),
+                child: KCard(
+                  padding: const EdgeInsets.all(18),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: AppColors.primaryGradient,
+                            ),
+                            child: Center(
+                              child: Text(
+                                ref.userName[0],
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 16,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  ref.userName,
+                                  style: Theme.of(context).textTheme.titleSmall,
+                                ),
+                                Text(
+                                  '📍 ${ref.city} • ${_timeAgo(ref.createdAt)}',
+                                  style: AppTextStyles.caption,
+                                ),
+                              ],
+                            ),
+                          ),
+                          if (ref.audioUrl != null)
                             Container(
-                              width: 40,
-                              height: 40,
+                              padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
+                                color: AppColors.primary.withValues(
+                                  alpha: 0.12,
+                                ),
                                 shape: BoxShape.circle,
-                                gradient: AppColors.primaryGradient,
                               ),
-                              child: Center(
-                                child: Text(
-                                  ref.userName[0],
-                                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 16),
-                                ),
+                              child: const Icon(
+                                Icons.play_arrow_rounded,
+                                color: AppColors.primary,
+                                size: 20,
                               ),
                             ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(ref.userName, style: Theme.of(context).textTheme.titleSmall),
-                                  Text(
-                                    '📍 ${ref.city} • ${_timeAgo(ref.createdAt)}',
-                                    style: AppTextStyles.caption,
-                                  ),
-                                ],
-                              ),
-                            ),
-                            if (ref.audioUrl != null)
-                              Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: AppColors.primary.withValues(alpha: 0.12),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(Icons.play_arrow_rounded, color: AppColors.primary, size: 20),
-                              ),
-                          ],
-                        ),
-                        const SizedBox(height: 14),
-                        Text(
-                          ref.transcript,
-                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(height: 1.6),
-                        ),
-                        const SizedBox(height: 14),
-                        // Action bar
-                        Row(
-                          children: [
-                            _ReflectionAction(icon: Icons.arrow_upward_rounded, label: '${ref.upvotes}', color: AppColors.primary),
-                            const SizedBox(width: 16),
-                            _ReflectionAction(icon: Icons.chat_bubble_outline_rounded, label: '${ref.reactionCount}', color: AppColors.grey500),
-                            const SizedBox(width: 16),
-                            _ReflectionAction(icon: Icons.share_outlined, label: '', color: AppColors.grey500),
-                            const Spacer(),
-                            Text('🔥 ${ref.reactionCount}', style: AppTextStyles.caption),
-                          ],
-                        ),
-                      ],
-                    ),
+                        ],
+                      ),
+                      const SizedBox(height: 14),
+                      Text(
+                        ref.transcript,
+                        style: Theme.of(
+                          context,
+                        ).textTheme.bodyMedium?.copyWith(height: 1.6),
+                      ),
+                      const SizedBox(height: 14),
+                      // Action bar
+                      Row(
+                        children: [
+                          _ReflectionAction(
+                            icon: Icons.arrow_upward_rounded,
+                            label: '${ref.upvotes}',
+                            color: AppColors.primary,
+                          ),
+                          const SizedBox(width: 16),
+                          _ReflectionAction(
+                            icon: Icons.chat_bubble_outline_rounded,
+                            label: '${ref.reactionCount}',
+                            color: AppColors.grey500,
+                          ),
+                          const SizedBox(width: 16),
+                          _ReflectionAction(
+                            icon: Icons.share_outlined,
+                            label: '',
+                            color: AppColors.grey500,
+                          ),
+                          const Spacer(),
+                          Text(
+                            '🔥 ${ref.reactionCount}',
+                            style: AppTextStyles.caption,
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
-                ).animate().fadeIn(delay: (index * 80).ms, duration: 400.ms);
-              },
-              childCount: reflections.length,
-            ),
+                ),
+              ).animate().fadeIn(delay: (index * 80).ms, duration: 400.ms);
+            }, childCount: reflections.length),
           ),
 
           const SliverToBoxAdapter(child: SizedBox(height: 140)),
@@ -158,7 +200,10 @@ class ReflectionsScreen extends StatelessWidget {
         onPressed: () => context.push('/recordReflection'),
         backgroundColor: AppColors.primary,
         icon: const Icon(Icons.mic_rounded, color: Colors.white),
-        label: const Text('Record', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+        label: const Text(
+          'Record',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+        ),
       ),
     );
   }
@@ -176,7 +221,11 @@ class _ReflectionAction extends StatelessWidget {
   final String label;
   final Color color;
 
-  const _ReflectionAction({required this.icon, required this.label, required this.color});
+  const _ReflectionAction({
+    required this.icon,
+    required this.label,
+    required this.color,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -185,7 +234,14 @@ class _ReflectionAction extends StatelessWidget {
         Icon(icon, size: 18, color: color),
         if (label.isNotEmpty) ...[
           const SizedBox(width: 4),
-          Text(label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: color)),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: color,
+            ),
+          ),
         ],
       ],
     );

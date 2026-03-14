@@ -43,7 +43,9 @@ class AppTheme {
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(20),
-          side: BorderSide(color: AppColors.lightDivider.withValues(alpha: 0.6)),
+          side: BorderSide(
+            color: AppColors.lightDivider.withValues(alpha: 0.6),
+          ),
         ),
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
@@ -90,7 +92,10 @@ class AppTheme {
           borderRadius: BorderRadius.circular(14),
           borderSide: const BorderSide(color: AppColors.primary, width: 2),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 18,
+          vertical: 16,
+        ),
         hintStyle: GoogleFonts.dmSans(color: AppColors.grey400),
       ),
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
@@ -103,7 +108,10 @@ class AppTheme {
       chipTheme: ChipThemeData(
         backgroundColor: AppColors.grey100,
         selectedColor: AppColors.primary.withValues(alpha: 0.15),
-        labelStyle: GoogleFonts.dmSans(fontSize: 13, fontWeight: FontWeight.w600),
+        labelStyle: GoogleFonts.dmSans(
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+        ),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         side: BorderSide.none,
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
@@ -203,7 +211,10 @@ class AppTheme {
           borderRadius: BorderRadius.circular(14),
           borderSide: const BorderSide(color: AppColors.primary, width: 2),
         ),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 18,
+          vertical: 16,
+        ),
         hintStyle: GoogleFonts.dmSans(color: AppColors.grey600),
       ),
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
@@ -216,7 +227,11 @@ class AppTheme {
       chipTheme: ChipThemeData(
         backgroundColor: AppColors.darkCard,
         selectedColor: AppColors.primary.withValues(alpha: 0.25),
-        labelStyle: GoogleFonts.dmSans(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.grey200),
+        labelStyle: GoogleFonts.dmSans(
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+          color: AppColors.grey200,
+        ),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         side: BorderSide.none,
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
@@ -239,23 +254,89 @@ class AppTheme {
   //  SHARED TEXT THEME
   // ═══════════════════════════════════════════════════════════════
   static TextTheme _textTheme(Brightness brightness) {
-    final color = brightness == Brightness.light ? AppColors.secondary : AppColors.grey100;
+    final color = brightness == Brightness.light
+        ? AppColors.secondary
+        : AppColors.grey100;
     return TextTheme(
-      displayLarge: GoogleFonts.playfairDisplay(fontSize: 44, fontWeight: FontWeight.w800, color: color, letterSpacing: -1.5),
-      displayMedium: GoogleFonts.playfairDisplay(fontSize: 34, fontWeight: FontWeight.w700, color: color, letterSpacing: -0.8),
-      displaySmall: GoogleFonts.playfairDisplay(fontSize: 28, fontWeight: FontWeight.w700, color: color),
-      headlineLarge: GoogleFonts.playfairDisplay(fontSize: 24, fontWeight: FontWeight.w700, color: color),
-      headlineMedium: GoogleFonts.dmSans(fontSize: 20, fontWeight: FontWeight.w700, color: color),
-      headlineSmall: GoogleFonts.dmSans(fontSize: 18, fontWeight: FontWeight.w700, color: color),
-      titleLarge: GoogleFonts.dmSans(fontSize: 18, fontWeight: FontWeight.w700, color: color),
-      titleMedium: GoogleFonts.dmSans(fontSize: 16, fontWeight: FontWeight.w600, color: color),
-      titleSmall: GoogleFonts.dmSans(fontSize: 14, fontWeight: FontWeight.w600, color: color),
-      bodyLarge: GoogleFonts.dmSans(fontSize: 16, fontWeight: FontWeight.w400, color: color, height: 1.6),
-      bodyMedium: GoogleFonts.dmSans(fontSize: 14, fontWeight: FontWeight.w400, color: color, height: 1.55),
-      bodySmall: GoogleFonts.dmSans(fontSize: 12, fontWeight: FontWeight.w400, color: color.withValues(alpha: 0.65)),
-      labelLarge: GoogleFonts.dmSans(fontSize: 14, fontWeight: FontWeight.w600, color: color),
-      labelMedium: GoogleFonts.dmSans(fontSize: 12, fontWeight: FontWeight.w600, color: color),
-      labelSmall: GoogleFonts.dmSans(fontSize: 10, fontWeight: FontWeight.w600, color: color.withValues(alpha: 0.65)),
+      displayLarge: GoogleFonts.playfairDisplay(
+        fontSize: 44,
+        fontWeight: FontWeight.w800,
+        color: color,
+        letterSpacing: -1.5,
+      ),
+      displayMedium: GoogleFonts.playfairDisplay(
+        fontSize: 34,
+        fontWeight: FontWeight.w700,
+        color: color,
+        letterSpacing: -0.8,
+      ),
+      displaySmall: GoogleFonts.playfairDisplay(
+        fontSize: 28,
+        fontWeight: FontWeight.w700,
+        color: color,
+      ),
+      headlineLarge: GoogleFonts.playfairDisplay(
+        fontSize: 24,
+        fontWeight: FontWeight.w700,
+        color: color,
+      ),
+      headlineMedium: GoogleFonts.dmSans(
+        fontSize: 20,
+        fontWeight: FontWeight.w700,
+        color: color,
+      ),
+      headlineSmall: GoogleFonts.dmSans(
+        fontSize: 18,
+        fontWeight: FontWeight.w700,
+        color: color,
+      ),
+      titleLarge: GoogleFonts.dmSans(
+        fontSize: 18,
+        fontWeight: FontWeight.w700,
+        color: color,
+      ),
+      titleMedium: GoogleFonts.dmSans(
+        fontSize: 16,
+        fontWeight: FontWeight.w600,
+        color: color,
+      ),
+      titleSmall: GoogleFonts.dmSans(
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
+        color: color,
+      ),
+      bodyLarge: GoogleFonts.dmSans(
+        fontSize: 16,
+        fontWeight: FontWeight.w400,
+        color: color,
+        height: 1.6,
+      ),
+      bodyMedium: GoogleFonts.dmSans(
+        fontSize: 14,
+        fontWeight: FontWeight.w400,
+        color: color,
+        height: 1.55,
+      ),
+      bodySmall: GoogleFonts.dmSans(
+        fontSize: 12,
+        fontWeight: FontWeight.w400,
+        color: color.withValues(alpha: 0.65),
+      ),
+      labelLarge: GoogleFonts.dmSans(
+        fontSize: 14,
+        fontWeight: FontWeight.w600,
+        color: color,
+      ),
+      labelMedium: GoogleFonts.dmSans(
+        fontSize: 12,
+        fontWeight: FontWeight.w600,
+        color: color,
+      ),
+      labelSmall: GoogleFonts.dmSans(
+        fontSize: 10,
+        fontWeight: FontWeight.w600,
+        color: color.withValues(alpha: 0.65),
+      ),
     );
   }
 }

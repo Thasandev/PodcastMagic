@@ -56,6 +56,7 @@ serve(async (req) => {
 
     // 4. Upsert Episodes
     let count = 0
+    const syncedEpisodes = []
     for (const item of feed.entries) {
       if (count >= limit) break; // Only sync latest 'limit' episodes
 
@@ -82,12 +83,34 @@ serve(async (req) => {
           console.error("Error inserting episode:", episodeError)
       } else {
           count++;
+          // Fetch the inserted episode to return it (or construct it from item)
+          syncedEpisodes.push({
+            id: crypto.randomUUID(), // placeholder if we don't fetch, but better to fetch
+            podcast_id: podcast.id,
+            title: item.title?.value || 'Untitled',
+            audio_url: audioUrl,
+            category: category || 'General',
+            published_at: publishedAt,
+            podcasts: {
+              title: podcast.title,
+              image_url: podcast.image_url
+            }
+          })
       }
     }
+
+    // Better way: Fetch actual episodes from DB after sync to ensure consistency
+    const { data: dbEpisodes } = await supabase
+      .from('episodes')
+      .select('*, podcasts(title, image_url)')
+      .eq('podcast_id', podcast.id)
+      .order('published_at', { ascending: false })
+      .limit(limit)
 
     return new Response(JSON.stringify({ 
       success: true, 
       podcast: podcast,
+      episodes: dbEpisodes || syncedEpisodes,
       episodesAdded: count
     }), { 
       headers: { ...corsHeaders, "Content-Type": "application/json" } 

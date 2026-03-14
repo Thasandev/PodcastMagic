@@ -20,52 +20,118 @@ class CoinsScreen extends StatelessWidget {
         children: [
           // ── Balance card ──
           Container(
-            padding: const EdgeInsets.all(28),
-            decoration: BoxDecoration(
-              gradient: AppColors.goldGradient,
-              borderRadius: BorderRadius.circular(24),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.accent.withValues(alpha: 0.3),
-                  blurRadius: 24,
-                  offset: const Offset(0, 10),
+                padding: const EdgeInsets.all(28),
+                decoration: BoxDecoration(
+                  gradient: AppColors.goldGradient,
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.accent.withValues(alpha: 0.3),
+                      blurRadius: 24,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            child: Column(
-              children: [
-                Text('Your Balance', style: AppTextStyles.overline.copyWith(color: Colors.black54)),
-                const SizedBox(height: 4),
-                Text(
-                  '${user.kaanCoins}',
-                  style: AppTextStyles.displayLarge.copyWith(color: Colors.black87, fontSize: 52),
+                child: Column(
+                  children: [
+                    Text(
+                      'Your Balance',
+                      style: AppTextStyles.overline.copyWith(
+                        color: Colors.black54,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${user.kaanCoins}',
+                      style: AppTextStyles.displayLarge.copyWith(
+                        color: Colors.black87,
+                        fontSize: 52,
+                      ),
+                    ),
+                    Text(
+                      'Kaan Coins',
+                      style: AppTextStyles.bodySmall.copyWith(
+                        color: Colors.black54,
+                      ),
+                    ),
+                  ],
                 ),
-                Text('Kaan Coins', style: AppTextStyles.bodySmall.copyWith(color: Colors.black54)),
-              ],
-            ),
-          ).animate().fadeIn(duration: 500.ms).scale(begin: const Offset(0.95, 0.95)),
+              )
+              .animate()
+              .fadeIn(duration: 500.ms)
+              .scale(begin: const Offset(0.95, 0.95)),
 
           const SizedBox(height: 28),
 
           // ── Earn section ──
           Text('Earn More Coins', style: AppTextStyles.headlineSmall),
           const SizedBox(height: 12),
-          _EarnCard(icon: '🔥', title: 'Daily Streak', subtitle: 'Day ${user.currentStreak + 1}: Earn 20 coins', coins: 20),
-          _EarnCard(icon: '📱', title: 'Daily Login', subtitle: 'Come back tomorrow', coins: 10),
-          _EarnCard(icon: '☕', title: 'Share Reflection', subtitle: 'Record and share your thoughts', coins: 15),
-          _EarnCard(icon: '👥', title: 'Refer a Friend', subtitle: 'Share your invite link', coins: 100),
-          _EarnCard(icon: '🧠', title: 'Complete Quiz', subtitle: 'Test your knowledge', coins: 25),
+          _EarnCard(
+            icon: '🔥',
+            title: 'Daily Streak',
+            subtitle: 'Day ${user.currentStreak + 1}: Earn 20 coins',
+            coins: 20,
+          ),
+          _EarnCard(
+            icon: '📱',
+            title: 'Daily Login',
+            subtitle: 'Come back tomorrow',
+            coins: 10,
+          ),
+          _EarnCard(
+            icon: '☕',
+            title: 'Share Reflection',
+            subtitle: 'Record and share your thoughts',
+            coins: 15,
+          ),
+          _EarnCard(
+            icon: '👥',
+            title: 'Refer a Friend',
+            subtitle: 'Share your invite link',
+            coins: 100,
+          ),
+          _EarnCard(
+            icon: '🧠',
+            title: 'Complete Quiz',
+            subtitle: 'Test your knowledge',
+            coins: 25,
+          ),
 
           const SizedBox(height: 28),
 
           // ── Redeem section ──
           Text('Redeem', style: AppTextStyles.headlineSmall),
           const SizedBox(height: 12),
-          _RedeemCard(icon: '⭐', title: '1 Day Premium', cost: 50, color: AppColors.primary),
-          _RedeemCard(icon: '🍕', title: 'Zomato ₹100 Voucher', cost: 200, color: AppColors.error),
-          _RedeemCard(icon: '👕', title: 'Myntra ₹200 Voucher', cost: 400, color: AppColors.jade),
-          _RedeemCard(icon: '🌱', title: 'Plant a Tree', cost: 100, color: AppColors.success),
-          _RedeemCard(icon: '🍽️', title: 'Feed a Child (1 meal)', cost: 150, color: AppColors.warning),
+          _RedeemCard(
+            icon: '⭐',
+            title: '1 Day Premium',
+            cost: 50,
+            color: AppColors.primary,
+          ),
+          _RedeemCard(
+            icon: '🍕',
+            title: 'Zomato ₹100 Voucher',
+            cost: 200,
+            color: AppColors.error,
+          ),
+          _RedeemCard(
+            icon: '👕',
+            title: 'Myntra ₹200 Voucher',
+            cost: 400,
+            color: AppColors.jade,
+          ),
+          _RedeemCard(
+            icon: '🌱',
+            title: 'Plant a Tree',
+            cost: 100,
+            color: AppColors.success,
+          ),
+          _RedeemCard(
+            icon: '🍽️',
+            title: 'Feed a Child (1 meal)',
+            cost: 150,
+            color: AppColors.warning,
+          ),
 
           const SizedBox(height: 28),
 
@@ -77,7 +143,10 @@ class CoinsScreen extends StatelessWidget {
             return Padding(
               padding: const EdgeInsets.only(bottom: 8),
               child: KCard(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
                 child: Row(
                   children: [
                     Container(
@@ -90,8 +159,12 @@ class CoinsScreen extends StatelessWidget {
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
-                        tx.type == 'earned' ? Icons.add_rounded : Icons.remove_rounded,
-                        color: tx.type == 'earned' ? AppColors.success : AppColors.error,
+                        tx.type == 'earned'
+                            ? Icons.add_rounded
+                            : Icons.remove_rounded,
+                        color: tx.type == 'earned'
+                            ? AppColors.success
+                            : AppColors.error,
                         size: 20,
                       ),
                     ),
@@ -100,15 +173,23 @@ class CoinsScreen extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(tx.reason, style: Theme.of(context).textTheme.titleSmall),
-                          Text(_timeAgo(tx.createdAt), style: AppTextStyles.caption),
+                          Text(
+                            tx.reason,
+                            style: Theme.of(context).textTheme.titleSmall,
+                          ),
+                          Text(
+                            _timeAgo(tx.createdAt),
+                            style: AppTextStyles.caption,
+                          ),
                         ],
                       ),
                     ),
                     Text(
                       '${tx.amount > 0 ? '+' : ''}${tx.amount}',
                       style: AppTextStyles.mono.copyWith(
-                        color: tx.type == 'earned' ? AppColors.success : AppColors.error,
+                        color: tx.type == 'earned'
+                            ? AppColors.success
+                            : AppColors.error,
                         fontWeight: FontWeight.w800,
                         fontSize: 15,
                       ),
@@ -137,7 +218,12 @@ class _EarnCard extends StatelessWidget {
   final String subtitle;
   final int coins;
 
-  const _EarnCard({required this.icon, required this.title, required this.subtitle, required this.coins});
+  const _EarnCard({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.coins,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -163,11 +249,16 @@ class _EarnCard extends StatelessWidget {
               decoration: BoxDecoration(
                 color: AppColors.accent.withValues(alpha: 0.12),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.accent.withValues(alpha: 0.2)),
+                border: Border.all(
+                  color: AppColors.accent.withValues(alpha: 0.2),
+                ),
               ),
               child: Text(
                 '+$coins 🪙',
-                style: AppTextStyles.labelMedium.copyWith(color: AppColors.accent, fontWeight: FontWeight.w700),
+                style: AppTextStyles.labelMedium.copyWith(
+                  color: AppColors.accent,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
             ),
           ],
@@ -183,7 +274,12 @@ class _RedeemCard extends StatelessWidget {
   final int cost;
   final Color color;
 
-  const _RedeemCard({required this.icon, required this.title, required this.cost, required this.color});
+  const _RedeemCard({
+    required this.icon,
+    required this.title,
+    required this.cost,
+    required this.color,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -207,13 +303,22 @@ class _RedeemCard extends StatelessWidget {
               onPressed: () {},
               style: ElevatedButton.styleFrom(
                 backgroundColor: color,
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 8,
+                ),
                 minimumSize: Size.zero,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
               child: Text(
                 '$cost 🪙',
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 12),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 12,
+                ),
               ),
             ),
           ],

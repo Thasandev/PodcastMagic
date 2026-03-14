@@ -38,7 +38,9 @@ class _DangalScreenState extends State<DangalScreen>
             floating: true,
             pinned: true,
             expandedHeight: 240,
-            backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
+            backgroundColor: isDark
+                ? AppColors.darkBackground
+                : AppColors.lightBackground,
             flexibleSpace: FlexibleSpaceBar(
               background: Container(
                 decoration: const BoxDecoration(
@@ -68,17 +70,27 @@ class _DangalScreenState extends State<DangalScreen>
                               ),
                             ],
                           ),
-                          child: const Center(child: Text('🏆', style: TextStyle(fontSize: 28))),
-                        ).animate().scale(begin: const Offset(0.6, 0.6), duration: 600.ms, curve: Curves.elasticOut),
+                          child: const Center(
+                            child: Text('🏆', style: TextStyle(fontSize: 28)),
+                          ),
+                        ).animate().scale(
+                          begin: const Offset(0.6, 0.6),
+                          duration: 600.ms,
+                          curve: Curves.elasticOut,
+                        ),
                         const SizedBox(height: 12),
                         Text(
                           'Dangal',
-                          style: AppTextStyles.displaySmall.copyWith(color: Colors.white),
+                          style: AppTextStyles.displaySmall.copyWith(
+                            color: Colors.white,
+                          ),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           'Weekly Listening Wars',
-                          style: AppTextStyles.bodySmall.copyWith(color: AppColors.grey500),
+                          style: AppTextStyles.bodySmall.copyWith(
+                            color: AppColors.grey500,
+                          ),
                         ),
                       ],
                     ),
@@ -141,11 +153,29 @@ class _DangalScreenState extends State<DangalScreen>
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        Expanded(child: _PodiumCard(entry: entries[1], medal: '🥈', height: 120)),
+                        Expanded(
+                          child: _PodiumCard(
+                            entry: entries[1],
+                            medal: '🥈',
+                            height: 120,
+                          ),
+                        ),
                         const SizedBox(width: 8),
-                        Expanded(child: _PodiumCard(entry: entries[0], medal: '🥇', height: 150)),
+                        Expanded(
+                          child: _PodiumCard(
+                            entry: entries[0],
+                            medal: '🥇',
+                            height: 150,
+                          ),
+                        ),
                         const SizedBox(width: 8),
-                        Expanded(child: _PodiumCard(entry: entries[2], medal: '🥉', height: 100)),
+                        Expanded(
+                          child: _PodiumCard(
+                            entry: entries[2],
+                            medal: '🥉',
+                            height: 100,
+                          ),
+                        ),
                       ],
                     ),
                   ).animate().fadeIn(duration: 600.ms),
@@ -175,21 +205,36 @@ class _DangalScreenState extends State<DangalScreen>
                           children: [
                             const Text(
                               'Your Rank: #4',
-                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 16),
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w800,
+                                fontSize: 16,
+                              ),
                             ),
                             Text(
                               '${SampleData.sampleUser.pahalwanRank} • ${SampleData.sampleUser.totalListeningMinutes} min this week',
-                              style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 12),
+                              style: TextStyle(
+                                color: Colors.white.withValues(alpha: 0.7),
+                                fontSize: 12,
+                              ),
                             ),
                           ],
                         ),
                       ),
                       Column(
                         children: [
-                          Text('Street Cred', style: TextStyle(color: Colors.white70, fontSize: 10)),
+                          Text(
+                            'Street Cred',
+                            style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 10,
+                            ),
+                          ),
                           Text(
                             '${SampleData.sampleUser.streetCredScore}',
-                            style: AppTextStyles.headlineMedium.copyWith(color: Colors.white),
+                            style: AppTextStyles.headlineMedium.copyWith(
+                              color: Colors.white,
+                            ),
                           ),
                         ],
                       ),
@@ -198,10 +243,21 @@ class _DangalScreenState extends State<DangalScreen>
                 ).animate().fadeIn(delay: 200.ms, duration: 500.ms),
 
                 // Remaining entries
-                ...entries.skip(3).toList().asMap().entries.map((e) => Padding(
-                      padding: const EdgeInsets.only(bottom: 8),
-                      child: _LeaderboardRow(entry: e.value),
-                    ).animate().fadeIn(delay: (300 + e.key * 80).ms, duration: 400.ms)),
+                ...entries
+                    .skip(3)
+                    .toList()
+                    .asMap()
+                    .entries
+                    .map(
+                      (e) =>
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: 8),
+                            child: _LeaderboardRow(entry: e.value),
+                          ).animate().fadeIn(
+                            delay: (300 + e.key * 80).ms,
+                            duration: 400.ms,
+                          ),
+                    ),
 
                 // Challenge button
                 const SizedBox(height: 16),
@@ -224,7 +280,11 @@ class _PodiumCard extends StatelessWidget {
   final String medal;
   final double height;
 
-  const _PodiumCard({required this.entry, required this.medal, required this.height});
+  const _PodiumCard({
+    required this.entry,
+    required this.medal,
+    required this.height,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -239,13 +299,20 @@ class _PodiumCard extends StatelessWidget {
             shape: BoxShape.circle,
             gradient: AppColors.primaryGradient,
             boxShadow: [
-              BoxShadow(color: AppColors.primary.withValues(alpha: 0.2), blurRadius: 12),
+              BoxShadow(
+                color: AppColors.primary.withValues(alpha: 0.2),
+                blurRadius: 12,
+              ),
             ],
           ),
           child: Center(
             child: Text(
               entry.userName[0],
-              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 18),
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
+                fontSize: 18,
+              ),
             ),
           ),
         ),
@@ -266,7 +333,10 @@ class _PodiumCard extends StatelessWidget {
           height: height,
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [AppColors.primary.withValues(alpha: 0.25), AppColors.primary.withValues(alpha: 0.05)],
+              colors: [
+                AppColors.primary.withValues(alpha: 0.25),
+                AppColors.primary.withValues(alpha: 0.05),
+              ],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
             ),
@@ -278,7 +348,11 @@ class _PodiumCard extends StatelessWidget {
           child: Center(
             child: Text(
               entry.pahalwanRank,
-              style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700, fontSize: 11),
+              style: TextStyle(
+                color: AppColors.primary,
+                fontWeight: FontWeight.w700,
+                fontSize: 11,
+              ),
             ),
           ),
         ),
@@ -303,7 +377,9 @@ class _LeaderboardRow extends StatelessWidget {
               '#${entry.rank}',
               style: TextStyle(
                 fontWeight: FontWeight.w800,
-                color: entry.isCurrentUser ? AppColors.primary : AppColors.grey500,
+                color: entry.isCurrentUser
+                    ? AppColors.primary
+                    : AppColors.grey500,
               ),
             ),
           ),
@@ -315,7 +391,9 @@ class _LeaderboardRow extends StatelessWidget {
             child: Text(
               entry.userName[0],
               style: TextStyle(
-                color: entry.isCurrentUser ? AppColors.primary : AppColors.grey400,
+                color: entry.isCurrentUser
+                    ? AppColors.primary
+                    : AppColors.grey400,
                 fontWeight: FontWeight.w700,
               ),
             ),
@@ -328,11 +406,16 @@ class _LeaderboardRow extends StatelessWidget {
                 Text(
                   entry.userName,
                   style: TextStyle(
-                    fontWeight: entry.isCurrentUser ? FontWeight.w700 : FontWeight.w500,
+                    fontWeight: entry.isCurrentUser
+                        ? FontWeight.w700
+                        : FontWeight.w500,
                     color: entry.isCurrentUser ? AppColors.primary : null,
                   ),
                 ),
-                Text(entry.pahalwanRank, style: Theme.of(context).textTheme.bodySmall),
+                Text(
+                  entry.pahalwanRank,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
               ],
             ),
           ),
@@ -341,7 +424,10 @@ class _LeaderboardRow extends StatelessWidget {
             children: [
               Text(
                 entry.formattedListening,
-                style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+                style: const TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 15,
+                ),
               ),
               Text(
                 'Score: ${entry.streetCredScore}',

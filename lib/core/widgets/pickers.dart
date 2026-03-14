@@ -7,7 +7,10 @@ import '../constants/app_constants.dart';
 ///  Dialect Pickers — Redesigned with Vinyl Lounge aesthetic
 /// ═══════════════════════════════════════════════════════════════
 
-Future<Set<String>?> showLanguagePicker(BuildContext context, Set<String> initial) {
+Future<Set<String>?> showLanguagePicker(
+  BuildContext context,
+  Set<String> initial,
+) {
   return showModalBottomSheet<Set<String>>(
     context: context,
     backgroundColor: AppColors.darkCard,
@@ -19,7 +22,10 @@ Future<Set<String>?> showLanguagePicker(BuildContext context, Set<String> initia
   );
 }
 
-Future<Set<String>?> showInterestPicker(BuildContext context, Set<String> initial) {
+Future<Set<String>?> showInterestPicker(
+  BuildContext context,
+  Set<String> initial,
+) {
   return showModalBottomSheet<Set<String>>(
     context: context,
     backgroundColor: AppColors.darkCard,
@@ -31,7 +37,10 @@ Future<Set<String>?> showInterestPicker(BuildContext context, Set<String> initia
   );
 }
 
-Future<double?> showCommuteDurationPicker(BuildContext context, double initial) {
+Future<double?> showCommuteDurationPicker(
+  BuildContext context,
+  double initial,
+) {
   return showModalBottomSheet<double>(
     context: context,
     backgroundColor: AppColors.darkCard,
@@ -72,12 +81,24 @@ class _LanguagePickerSheetState extends State<_LanguagePickerSheet> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Center(
-                child: Container(width: 40, height: 4, decoration: BoxDecoration(color: AppColors.grey700, borderRadius: BorderRadius.circular(2))),
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColors.grey700,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
               ),
               const SizedBox(height: 20),
               Text('Languages', style: AppTextStyles.headlineLarge),
               const SizedBox(height: 4),
-              Text('Select your preferred languages', style: AppTextStyles.bodySmall.copyWith(color: AppColors.grey500)),
+              Text(
+                'Select your preferred languages',
+                style: AppTextStyles.bodySmall.copyWith(
+                  color: AppColors.grey500,
+                ),
+              ),
               const SizedBox(height: 20),
               Expanded(
                 child: GridView.builder(
@@ -106,16 +127,36 @@ class _LanguagePickerSheetState extends State<_LanguagePickerSheet> {
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 200),
                         decoration: BoxDecoration(
-                          color: isSelected ? AppColors.primary.withValues(alpha: 0.12) : Colors.white.withValues(alpha: 0.04),
+                          color: isSelected
+                              ? AppColors.primary.withValues(alpha: 0.12)
+                              : Colors.white.withValues(alpha: 0.04),
                           borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: isSelected ? AppColors.primary : AppColors.darkDivider),
+                          border: Border.all(
+                            color: isSelected
+                                ? AppColors.primary
+                                : AppColors.darkDivider,
+                          ),
                         ),
                         child: Center(
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              Text(lang['nativeName']!, style: TextStyle(fontWeight: FontWeight.w700, color: isSelected ? AppColors.primary : AppColors.grey300)),
-                              Text(lang['name']!, style: TextStyle(fontSize: 11, color: AppColors.grey500)),
+                              Text(
+                                lang['nativeName']!,
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w700,
+                                  color: isSelected
+                                      ? AppColors.primary
+                                      : AppColors.grey300,
+                                ),
+                              ),
+                              Text(
+                                lang['name']!,
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: AppColors.grey500,
+                                ),
+                              ),
                             ],
                           ),
                         ),
@@ -170,12 +211,24 @@ class _InterestPickerSheetState extends State<_InterestPickerSheet> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Center(
-                child: Container(width: 40, height: 4, decoration: BoxDecoration(color: AppColors.grey700, borderRadius: BorderRadius.circular(2))),
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: AppColors.grey700,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
               ),
               const SizedBox(height: 20),
               Text('Interests', style: AppTextStyles.headlineLarge),
               const SizedBox(height: 4),
-              Text('Pick at least 3 topics', style: AppTextStyles.bodySmall.copyWith(color: AppColors.grey500)),
+              Text(
+                'Pick at least 3 topics',
+                style: AppTextStyles.bodySmall.copyWith(
+                  color: AppColors.grey500,
+                ),
+              ),
               const SizedBox(height: 20),
               Expanded(
                 child: GridView.builder(
@@ -205,14 +258,21 @@ class _InterestPickerSheetState extends State<_InterestPickerSheet> {
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 200),
                         decoration: BoxDecoration(
-                          color: isSelected ? color.withValues(alpha: 0.12) : Colors.white.withValues(alpha: 0.04),
+                          color: isSelected
+                              ? color.withValues(alpha: 0.12)
+                              : Colors.white.withValues(alpha: 0.04),
                           borderRadius: BorderRadius.circular(14),
-                          border: Border.all(color: isSelected ? color : AppColors.darkDivider),
+                          border: Border.all(
+                            color: isSelected ? color : AppColors.darkDivider,
+                          ),
                         ),
                         child: Center(
                           child: Text(
                             '${cat['icon']}  ${cat['name']}',
-                            style: TextStyle(fontWeight: FontWeight.w700, color: isSelected ? color : AppColors.grey300),
+                            style: TextStyle(
+                              fontWeight: FontWeight.w700,
+                              color: isSelected ? color : AppColors.grey300,
+                            ),
                           ),
                         ),
                       ),
@@ -224,7 +284,9 @@ class _InterestPickerSheetState extends State<_InterestPickerSheet> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: _selected.length >= 3 ? () => Navigator.of(context).pop(_selected) : null,
+                  onPressed: _selected.length >= 3
+                      ? () => Navigator.of(context).pop(_selected)
+                      : null,
                   child: const Text('Done'),
                 ),
               ),
@@ -260,15 +322,28 @@ class _CommuteDurationSheetState extends State<_CommuteDurationSheet> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Container(width: 40, height: 4, decoration: BoxDecoration(color: AppColors.grey700, borderRadius: BorderRadius.circular(2))),
+          Container(
+            width: 40,
+            height: 4,
+            decoration: BoxDecoration(
+              color: AppColors.grey700,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
           const SizedBox(height: 20),
           Text('Commute Duration', style: AppTextStyles.headlineLarge),
           const SizedBox(height: 32),
           Text(
             '${_value.round()}',
-            style: AppTextStyles.streakCount.copyWith(color: AppColors.accent, fontSize: 52),
+            style: AppTextStyles.streakCount.copyWith(
+              color: AppColors.accent,
+              fontSize: 52,
+            ),
           ),
-          Text('minutes', style: AppTextStyles.overline.copyWith(color: AppColors.grey500)),
+          Text(
+            'minutes',
+            style: AppTextStyles.overline.copyWith(color: AppColors.grey500),
+          ),
           const SizedBox(height: 20),
           SliderTheme(
             data: SliderThemeData(

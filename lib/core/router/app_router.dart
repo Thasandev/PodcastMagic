@@ -15,19 +15,18 @@ import '../../features/coins/presentation/screens/coins_screen.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
 import '../../features/profile/presentation/screens/edit_profile_screen.dart';
 import '../../features/community/presentation/screens/community_screen.dart';
+import '../models/models.dart';
 
 final GlobalKey<NavigatorState> _rootNavigatorKey = GlobalKey<NavigatorState>();
-final GlobalKey<NavigatorState> _shellNavigatorKey = GlobalKey<NavigatorState>();
+final GlobalKey<NavigatorState> _shellNavigatorKey =
+    GlobalKey<NavigatorState>();
 
 final GoRouter appRouter = GoRouter(
   navigatorKey: _rootNavigatorKey,
   initialLocation: '/login',
   routes: [
     // Auth
-    GoRoute(
-      path: '/login',
-      builder: (context, state) => const LoginScreen(),
-    ),
+    GoRoute(path: '/login', builder: (context, state) => const LoginScreen()),
 
     // Onboarding
     GoRoute(
@@ -42,33 +41,28 @@ final GoRouter appRouter = GoRouter(
       routes: [
         GoRoute(
           path: '/',
-          pageBuilder: (context, state) => const NoTransitionPage(
-            child: HomeScreen(),
-          ),
+          pageBuilder: (context, state) =>
+              const NoTransitionPage(child: HomeScreen()),
         ),
         GoRoute(
           path: '/discover',
-          pageBuilder: (context, state) => const NoTransitionPage(
-            child: DiscoveryScreen(),
-          ),
+          pageBuilder: (context, state) =>
+              const NoTransitionPage(child: DiscoveryScreen()),
         ),
         GoRoute(
           path: '/library',
-          pageBuilder: (context, state) => const NoTransitionPage(
-            child: LibraryScreen(),
-          ),
+          pageBuilder: (context, state) =>
+              const NoTransitionPage(child: LibraryScreen()),
         ),
         GoRoute(
           path: '/dangal',
-          pageBuilder: (context, state) => const NoTransitionPage(
-            child: DangalScreen(),
-          ),
+          pageBuilder: (context, state) =>
+              const NoTransitionPage(child: DangalScreen()),
         ),
         GoRoute(
           path: '/profile',
-          pageBuilder: (context, state) => const NoTransitionPage(
-            child: ProfileScreen(),
-          ),
+          pageBuilder: (context, state) =>
+              const NoTransitionPage(child: ProfileScreen()),
         ),
       ],
     ),
@@ -77,7 +71,10 @@ final GoRouter appRouter = GoRouter(
     GoRoute(
       path: '/player',
       parentNavigatorKey: _rootNavigatorKey,
-      builder: (context, state) => const PlayerScreen(),
+      builder: (context, state) {
+        final episode = state.extra as Episode?;
+        return PlayerScreen(episode: episode);
+      },
     ),
     GoRoute(
       path: '/reflections',
