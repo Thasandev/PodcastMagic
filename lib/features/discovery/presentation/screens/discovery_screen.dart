@@ -1,23 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/data/sample_data.dart';
 import '../../../../core/widgets/shared_widgets.dart';
+import '../data/repositories/podcast_repository.dart';
+import '../../../../core/models/models.dart';
 
-class DiscoveryScreen extends StatefulWidget {
+class DiscoveryScreen extends ConsumerStatefulWidget {
   const DiscoveryScreen({super.key});
 
   @override
-  State<DiscoveryScreen> createState() => _DiscoveryScreenState();
+  ConsumerState<DiscoveryScreen> createState() => _DiscoveryScreenState();
 }
 
-class _DiscoveryScreenState extends State<DiscoveryScreen>
+class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final _searchController = TextEditingController();
   final _youtubeUrlController = TextEditingController();
   bool _isSearching = false;
+  bool _isLoadingResults = false;
+  List<PodcastSearchResult> _searchResults = [];
+  String _lastQuery = '';
 
   @override
   void initState() {
@@ -70,8 +76,16 @@ class _DiscoveryScreenState extends State<DiscoveryScreen>
                       KSearchInput(
                         controller: _searchController,
                         hintText: 'Search podcasts, topics, creators...',
-                        onChanged: (val) =>
-                            setState(() => _isSearching = val.isNotEmpty),
+                        onChanged: (val) {
+                          setState(() {
+                            _isSearching = val.isNotEmpty;
+                            if (!_isSearching) {
+                              _searchResults = [];
+                              _lastQuery = '';
+                            }
+                          });
+                          if (_isSearching) _performSearch(val);
+                        },
                       ),
                     ],
                   ),
@@ -119,14 +133,33 @@ class _DiscoveryScreenState extends State<DiscoveryScreen>
     );
   }
 
-  Widget _buildSearchResults() {
-    final query = _searchController.text.toLowerCase();
-    final results = SampleData.sampleEpisodes.where((ep) {
-      return ep.title.toLowerCase().contains(query) ||
-          ep.podcastName.toLowerCase().contains(query);
-    }).toList();
+  void _performSearch(String query) async {
+    if (query == _lastQuery) return;
+    _lastQuery = query;
 
-    if (results.isEmpty) {
+    setState(() => _isLoadingResults = true);
+
+    try {
+      final results =
+          await ref.read(podcastRepositoryProvider).searchPodcasts(query);
+      if (mounted && query == _lastQuery) {
+        setState(() {
+          _searchResults = results;
+          _isLoadingResults = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) setState(() => _isLoadingResults = false);
+    }
+  }
+
+  Widget _buildSearchResults() {
+    if (_isLoadingResults) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_searchResults.isEmpty) {
+      final query = _searchController.text;
       return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -144,22 +177,67 @@ class _DiscoveryScreenState extends State<DiscoveryScreen>
 
     return ListView.builder(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 120),
-      itemCount: results.length,
+      itemCount: _searchResults.length,
       itemBuilder: (context, index) {
-        final ep = results[index];
+        final result = _searchResults[index];
         return Padding(
           padding: const EdgeInsets.only(bottom: 10),
-          child: KEpisodeCard(
-            title: ep.title,
-            podcastName: ep.podcastName,
-            duration: ep.formattedDuration,
-            category: ep.category,
-            saveCount: ep.saveCount,
+          child: KCard(
             onTap: () {},
-            onPlay: () {},
+            padding: const EdgeInsets.all(12),
+            child: Row(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: result.imageUrl != null
+                      ? Image.network(
+                          result.imageUrl!,
+                          width: 60,
+                          height: 60,
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => _buildPlaceholder(),
+                        )
+                      : _buildPlaceholder(),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        result.title,
+                        style: AppTextStyles.labelLarge,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        result.author,
+                        style: AppTextStyles.caption,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+                const Icon(
+                  Icons.add_circle_outline_rounded,
+                  color: AppColors.primary,
+                ),
+              ],
+            ),
           ),
-        ).animate().fadeIn(delay: (index * 50).ms, duration: 300.ms);
+        ).animate().fadeIn(delay: (index * 40).ms, duration: 300.ms);
       },
+    );
+  }
+
+  Widget _buildPlaceholder() {
+    return Container(
+      width: 60,
+      height: 60,
+      color: AppColors.grey800,
+      child: const Icon(Icons.podcasts_rounded, color: Colors.white24),
     );
   }
 
