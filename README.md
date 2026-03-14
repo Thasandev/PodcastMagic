@@ -14,59 +14,95 @@ Before you begin, ensure you have the following installed:
 1. [Flutter SDK](https://docs.flutter.dev/get-started/install) (> 3.8.0)
 2. [Supabase CLI](https://supabase.com/docs/guides/cli)
 3. [Docker Desktop](https://www.docker.com/) (Required to run Supabase locally)
-4. A supported IDE (VS Code, Android Studio, etc.)
 
 ---
 
-## 🛠 Backend Setup (Supabase)
+## 🛠 Step 1: Get Your API Keys
 
-### 1. Start the Local Supabase Stack
-Make sure Docker is running on your machine, then navigate to your project root and start Supabase:
+### Supabase
+1. Create a project at [supabase.com](https://supabase.com).
+2. Navigate to **Project Settings** > **API**.
+3. Under **Project API keys**, copy the `Project URL` and the `anon public` key.
+
+### OpenAI
+1. Create an account at [platform.openai.com](https://platform.openai.com).
+2. Navigate to **API Keys** and create a new **Secret Key**.
+3. Copy the key (you won't be able to see it again).
+
+---
+
+## 🛠 Step 2: Configure the App
+
+The app reads secrets using Dart's `--dart-define` mechanism. You have two ways to provide these:
+
+### Option A: Command Line (CLI)
+Run the app using the following format:
+```bash
+flutter run \
+  --dart-define=SUPABASE_URL=https://your-project.supabase.co \
+  --dart-define=SUPABASE_ANON_KEY=your-anon-key \
+  --dart-define=OPENAI_API_KEY=your-openai-key
+```
+
+### Option B: VS Code (Launch Config)
+Create/Update `.vscode/launch.json` in your project root:
+```json
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Kaan (Debug)",
+      "request": "launch",
+      "type": "dart",
+      "toolArgs": [
+        "--dart-define", "SUPABASE_URL=https://your-project.supabase.co",
+        "--dart-define", "SUPABASE_ANON_KEY=your-anon-key",
+        "--dart-define", "OPENAI_API_KEY=your-openai-key"
+      ]
+    }
+  ]
+}
+```
+
+---
+
+## 🛠 Step 3: Backend Setup (Supabase)
+
+### 1. Initialize Local Supabase (Optional for Local Dev)
+If you want to run the database locally:
 ```bash
 supabase start
 ```
-*Note: This will download several Docker images on its first run and may take a few minutes.*
 
-Once started, the CLI will output your local credentials. Note down your **API URL** and **anon key** to use in your `.env` file.
-
-### 2. Stop Supabase
-When you're done developing, you can stop the local stack securely:
+### 2. Set Production Secrets (For Edge Functions)
+If you are deploying Edge Functions, you must set the OpenAI key in Supabase:
 ```bash
-supabase stop
+supabase secrets set OPENAI_API_KEY=your-openai-key
 ```
+
+### 3. Deploy Database Schema
+If your Supabase project is empty, run the schema initialization:
+```bash
+supabase db push
+```
+*Or copy-paste the contents of `supabase/schema.sql` into the Supabase SQL Editor.*
 
 ---
 
-## 📱 Frontend Setup (Flutter)
+## 📱 Running the Frontend
 
-### 1. Configure Environment Variables
-Copy the provided `.env.example` file to create your own configuration:
-```bash
-cp .env.example .env
-```
-Open the `.env` file and replace the placeholder values:
-- `SUPABASE_URL`: Your local Supabase API URL (or production URL).
-- `SUPABASE_ANON_KEY`: Your local Supabase anon key.
-- `OPENAI_API_KEY`: Your OpenAI API key (if required).
+1. **Fetch Dependencies**:
+   ```bash
+   flutter pub get
+   ```
 
-### 2. Fetch Dependencies
-Install all the necessary Dart/Flutter packages:
-```bash
-flutter pub get
-```
+2. **Generate Code**:
+   ```bash
+   dart run build_runner build --delete-conflicting-outputs
+   ```
 
-### 3. Generate Code
-This project uses `build_runner` for code generation (e.g. for Riverpod and json_serializable). Run it to generate the necessary files:
-```bash
-dart run build_runner build --delete-conflicting-outputs
-```
-
-### 4. Run the Application
-You're ready to go! Run the app on your connected device, emulator, or simulator:
-```bash
-flutter run
-```
-To explicitly run the web version:
-```bash
-flutter run -d chrome
-```
+3. **Launch**:
+   ```bash
+   flutter run -d chrome
+   ```
+   *(Ensure you've added the `--dart-define` flags as shown above)*
