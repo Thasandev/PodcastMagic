@@ -1,44 +1,23 @@
-import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/models/models.dart';
+import '../../../../services/supabase_service.dart';
 
 final podcastRepositoryProvider = Provider<PodcastRepository>((ref) {
-  return PodcastRepository(Dio());
+  return PodcastRepository(ref.watch(supabaseServiceProvider));
 });
 
 class PodcastRepository {
-  final Dio _dio;
+  final SupabaseService _supabase;
 
-  PodcastRepository(this._dio);
+  PodcastRepository(this._supabase);
 
   Future<List<PodcastSearchResult>> searchPodcasts(String query) async {
     if (query.isEmpty) return [];
 
     try {
-      final response = await _dio.get(
-        'https://itunes.apple.com/search',
-        queryParameters: {
-          'media': 'podcast',
-          'term': query,
-          'limit': 20,
-        },
-      );
-
-      if (response.statusCode == 200) {
-        final List<dynamic> results = response.data['results'] ?? [];
-        return results.map((json) {
-          return PodcastSearchResult(
-            title: json['collectionName'] ?? 'Unknown Podcast',
-            author: json['artistName'] ?? 'Unknown Author',
-            imageUrl: json['artworkUrl600'] ?? json['artworkUrl100'],
-            rssUrl: json['feedUrl'] ?? '',
-            provider: 'itunes',
-          );
-        }).toList();
-      }
-      return [];
+      return await _supabase.searchExternalPodcasts(query);
     } catch (e) {
-      // Log error or handle as needed
+      print('Search error: $e');
       return [];
     }
   }

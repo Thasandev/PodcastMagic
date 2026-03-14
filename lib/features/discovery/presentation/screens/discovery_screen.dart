@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -24,6 +25,7 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen>
   bool _isLoadingResults = false;
   List<PodcastSearchResult> _searchResults = [];
   String _lastQuery = '';
+  Timer? _debounceTimer;
 
   @override
   void initState() {
@@ -33,6 +35,7 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen>
 
   @override
   void dispose() {
+    _debounceTimer?.cancel();
     _tabController.dispose();
     _searchController.dispose();
     _youtubeUrlController.dispose();
@@ -82,9 +85,15 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen>
                             if (!_isSearching) {
                               _searchResults = [];
                               _lastQuery = '';
+                              _debounceTimer?.cancel();
                             }
                           });
-                          if (_isSearching) _performSearch(val);
+                          if (_isSearching) {
+                            _debounceTimer?.cancel();
+                            _debounceTimer = Timer(const Duration(milliseconds: 500), () {
+                              _performSearch(val);
+                            });
+                          }
                         },
                       ),
                     ],
