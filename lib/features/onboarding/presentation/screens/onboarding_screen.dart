@@ -1,6 +1,6 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/constants/app_constants.dart';
@@ -65,22 +65,28 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             children: [
               // ── Progress + Back ──
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 16,
+                ),
                 child: Row(
                   children: [
                     if (_currentPage > 0)
                       IconButton(
                         onPressed: _previousPage,
-                        icon: const Icon(Icons.arrow_back_rounded, color: AppColors.grey400),
+                        icon: const Icon(
+                          Icons.arrow_back_rounded,
+                          color: AppColors.grey400,
+                        ),
                       )
                     else
                       const SizedBox(width: 48),
-                    Expanded(
-                      child: _buildProgressDots(),
-                    ),
+                    Expanded(child: _buildProgressDots()),
                     Text(
                       '${_currentPage + 1}/5',
-                      style: AppTextStyles.mono.copyWith(color: AppColors.grey500),
+                      style: AppTextStyles.mono.copyWith(
+                        color: AppColors.grey500,
+                      ),
                     ),
                   ],
                 ),
@@ -91,7 +97,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 child: PageView(
                   controller: _pageController,
                   physics: const NeverScrollableScrollPhysics(),
-                  onPageChanged: (index) => setState(() => _currentPage = index),
+                  onPageChanged: (index) =>
+                      setState(() => _currentPage = index),
                   children: [
                     _buildWelcomePage(),
                     _buildLanguagePage(),
@@ -122,7 +129,11 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(4),
             gradient: isActive ? AppColors.primaryGradient : null,
-            color: isActive ? null : (isPast ? AppColors.primary.withValues(alpha: 0.4) : AppColors.darkDivider),
+            color: isActive
+                ? null
+                : (isPast
+                      ? AppColors.primary.withValues(alpha: 0.4)
+                      : AppColors.darkDivider),
           ),
         );
       }),
@@ -143,11 +154,22 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               shape: BoxShape.circle,
               gradient: AppColors.primaryGradient,
               boxShadow: [
-                BoxShadow(color: AppColors.primary.withValues(alpha: 0.3), blurRadius: 30),
+                BoxShadow(
+                  color: AppColors.primary.withValues(alpha: 0.3),
+                  blurRadius: 30,
+                ),
               ],
             ),
-            child: const Icon(Icons.headphones_rounded, color: Colors.white, size: 48),
-          ).animate().scale(begin: const Offset(0.6, 0.6), duration: 600.ms, curve: Curves.elasticOut),
+            child: const Icon(
+              Icons.headphones_rounded,
+              color: Colors.white,
+              size: 48,
+            ),
+          ).animate().scale(
+            begin: const Offset(0.6, 0.6),
+            duration: 600.ms,
+            curve: Curves.elasticOut,
+          ),
           const SizedBox(height: 40),
           Text(
             'Let\'s make your\ncommute count',
@@ -161,10 +183,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             textAlign: TextAlign.center,
           ).animate().fadeIn(delay: 400.ms, duration: 600.ms),
           const SizedBox(height: 60),
-          KGradientButton(
-            text: 'Let\'s go →',
-            onPressed: _nextPage,
-          ).animate().fadeIn(delay: 600.ms, duration: 400.ms).slideY(begin: 0.2, end: 0),
+          KGradientButton(text: 'Let\'s go →', onPressed: _nextPage)
+              .animate()
+              .fadeIn(delay: 600.ms, duration: 400.ms)
+              .slideY(begin: 0.2, end: 0),
         ],
       ),
     );
@@ -349,9 +371,24 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   Widget _buildVoicePage() {
     final voices = [
-      {'id': 'natural', 'name': 'Natural', 'desc': 'Warm, conversational', 'icon': '🎙️'},
-      {'id': 'professional', 'name': 'Professional', 'desc': 'Clear, authoritative', 'icon': '🎧'},
-      {'id': 'friendly', 'name': 'Friendly', 'desc': 'Casual, upbeat', 'icon': '😊'},
+      {
+        'id': 'natural',
+        'name': 'Natural',
+        'desc': 'Warm, conversational',
+        'icon': '🎙️',
+      },
+      {
+        'id': 'professional',
+        'name': 'Professional',
+        'desc': 'Clear, authoritative',
+        'icon': '🎧',
+      },
+      {
+        'id': 'friendly',
+        'name': 'Friendly',
+        'desc': 'Casual, upbeat',
+        'icon': '😊',
+      },
     ];
 
     return Padding(
@@ -388,6 +425,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             text: 'Start Listening 🎧',
             onPressed: () {
               // Navigate to main app
+              context.go('/');
             },
           ),
         ],
@@ -423,14 +461,21 @@ class _SelectableChip extends StatelessWidget {
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           decoration: BoxDecoration(
-            color: isSelected ? color.withValues(alpha: 0.12) : Colors.white.withValues(alpha: 0.04),
+            color: isSelected
+                ? color.withValues(alpha: 0.12)
+                : Colors.white.withValues(alpha: 0.04),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
               color: isSelected ? color : AppColors.darkDivider,
               width: isSelected ? 1.5 : 1,
             ),
             boxShadow: isSelected
-                ? [BoxShadow(color: color.withValues(alpha: 0.15), blurRadius: 12)]
+                ? [
+                    BoxShadow(
+                      color: color.withValues(alpha: 0.15),
+                      blurRadius: 12,
+                    ),
+                  ]
                 : null,
           ),
           child: Column(
@@ -448,7 +493,9 @@ class _SelectableChip extends StatelessWidget {
                 Text(
                   subtitle!,
                   style: AppTextStyles.caption.copyWith(
-                    color: isSelected ? color.withValues(alpha: 0.7) : AppColors.grey600,
+                    color: isSelected
+                        ? color.withValues(alpha: 0.7)
+                        : AppColors.grey600,
                   ),
                   textAlign: TextAlign.center,
                 ),
