@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/shared_widgets.dart';
@@ -51,11 +52,7 @@ class _LoginScreenState extends State<LoginScreen>
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFF0F1117),
-              Color(0xFF151826),
-              Color(0xFF0F1117),
-            ],
+            colors: [Color(0xFF0F1117), Color(0xFF151826), Color(0xFF0F1117)],
           ),
         ),
         child: SafeArea(
@@ -63,7 +60,10 @@ class _LoginScreenState extends State<LoginScreen>
             padding: const EdgeInsets.symmetric(horizontal: 28),
             child: ConstrainedBox(
               constraints: BoxConstraints(
-                minHeight: size.height - MediaQuery.of(context).padding.top - MediaQuery.of(context).padding.bottom,
+                minHeight:
+                    size.height -
+                    MediaQuery.of(context).padding.top -
+                    MediaQuery.of(context).padding.bottom,
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -77,12 +77,15 @@ class _LoginScreenState extends State<LoginScreen>
 
                   // ── Brand name ──
                   Text(
-                    'Kaan',
-                    style: AppTextStyles.displayLarge.copyWith(
-                      color: Colors.white,
-                      fontSize: 52,
-                    ),
-                  ).animate().fadeIn(duration: 600.ms).slideY(begin: 0.2, end: 0),
+                        'Kaan',
+                        style: AppTextStyles.displayLarge.copyWith(
+                          color: Colors.white,
+                          fontSize: 52,
+                        ),
+                      )
+                      .animate()
+                      .fadeIn(duration: 600.ms)
+                      .slideY(begin: 0.2, end: 0),
 
                   const SizedBox(height: 6),
 
@@ -137,12 +140,27 @@ class _LoginScreenState extends State<LoginScreen>
 
                   // ── Social Buttons ──
                   Row(
-                    children: [
-                      Expanded(child: _SocialButton(icon: Icons.g_mobiledata_rounded, label: 'Google', onTap: () {})),
-                      const SizedBox(width: 12),
-                      Expanded(child: _SocialButton(icon: Icons.apple, label: 'Apple', onTap: () {})),
-                    ],
-                  ).animate().fadeIn(delay: 600.ms, duration: 500.ms).slideY(begin: 0.15, end: 0),
+                        children: [
+                          Expanded(
+                            child: _SocialButton(
+                              icon: Icons.g_mobiledata_rounded,
+                              label: 'Google',
+                              onTap: () {},
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _SocialButton(
+                              icon: Icons.apple,
+                              label: 'Apple',
+                              onTap: () {},
+                            ),
+                          ),
+                        ],
+                      )
+                      .animate()
+                      .fadeIn(delay: 600.ms, duration: 500.ms)
+                      .slideY(begin: 0.15, end: 0),
 
                   const SizedBox(height: 40),
 
@@ -173,7 +191,9 @@ class _LoginScreenState extends State<LoginScreen>
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             border: Border.all(
-              color: AppColors.primary.withValues(alpha: 0.3 + (_waveController.value * 0.15)),
+              color: AppColors.primary.withValues(
+                alpha: 0.3 + (_waveController.value * 0.15),
+              ),
               width: 2,
             ),
             boxShadow: [
@@ -188,7 +208,10 @@ class _LoginScreenState extends State<LoginScreen>
             margin: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              border: Border.all(color: AppColors.primary.withValues(alpha: 0.2), width: 1),
+              border: Border.all(
+                color: AppColors.primary.withValues(alpha: 0.2),
+                width: 1,
+              ),
             ),
             child: Container(
               margin: const EdgeInsets.all(8),
@@ -202,12 +225,21 @@ class _LoginScreenState extends State<LoginScreen>
                   ),
                 ],
               ),
-              child: const Icon(Icons.headphones_rounded, color: Colors.white, size: 36),
+              child: const Icon(
+                Icons.headphones_rounded,
+                color: Colors.white,
+                size: 36,
+              ),
             ),
           ),
         );
       },
-    ).animate().scale(begin: const Offset(0.8, 0.8), end: const Offset(1, 1), duration: 800.ms, curve: Curves.easeOut);
+    ).animate().scale(
+      begin: const Offset(0.8, 0.8),
+      end: const Offset(1, 1),
+      duration: 800.ms,
+      curve: Curves.easeOut,
+    );
   }
 
   Widget _buildWaveBar(int index) {
@@ -216,7 +248,10 @@ class _LoginScreenState extends State<LoginScreen>
       animation: _waveController,
       builder: (context, _) {
         final offset = (_waveController.value + index * 0.15) % 1.0;
-        final h = heights[index] * (0.4 + 0.6 * (0.5 + 0.5 * (offset * 3.14159 * 2).abs().clamp(0, 1)));
+        final h =
+            heights[index] *
+            (0.4 +
+                0.6 * (0.5 + 0.5 * (offset * 3.14159 * 2).abs().clamp(0, 1)));
         return Container(
           width: 2.5,
           height: h,
@@ -236,48 +271,65 @@ class _LoginScreenState extends State<LoginScreen>
       children: [
         // Frosted glass phone input
         ClipRRect(
-          borderRadius: BorderRadius.circular(16),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 18),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.06),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.darkDivider),
-              ),
-              child: Row(
-                children: [
-                  Text('+91', style: AppTextStyles.bodyLarge.copyWith(color: AppColors.grey300)),
-                  Container(
-                    width: 1,
-                    height: 28,
-                    margin: const EdgeInsets.symmetric(horizontal: 14),
-                    color: AppColors.darkDivider,
+              borderRadius: BorderRadius.circular(16),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 18),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.06),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppColors.darkDivider),
                   ),
-                  Expanded(
-                    child: TextField(
-                      controller: _phoneController,
-                      keyboardType: TextInputType.phone,
-                      maxLength: 10,
-                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                      style: AppTextStyles.bodyLarge.copyWith(color: Colors.white, letterSpacing: 1.5),
-                      decoration: InputDecoration(
-                        counterText: '',
-                        hintText: 'Phone number',
-                        hintStyle: AppTextStyles.bodyLarge.copyWith(color: AppColors.grey600),
-                        border: InputBorder.none,
-                        enabledBorder: InputBorder.none,
-                        focusedBorder: InputBorder.none,
-                        contentPadding: const EdgeInsets.symmetric(vertical: 18),
+                  child: Row(
+                    children: [
+                      Text(
+                        '+91',
+                        style: AppTextStyles.bodyLarge.copyWith(
+                          color: AppColors.grey300,
+                        ),
                       ),
-                    ),
+                      Container(
+                        width: 1,
+                        height: 28,
+                        margin: const EdgeInsets.symmetric(horizontal: 14),
+                        color: AppColors.darkDivider,
+                      ),
+                      Expanded(
+                        child: TextField(
+                          controller: _phoneController,
+                          keyboardType: TextInputType.phone,
+                          maxLength: 10,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly,
+                          ],
+                          style: AppTextStyles.bodyLarge.copyWith(
+                            color: Colors.white,
+                            letterSpacing: 1.5,
+                          ),
+                          decoration: InputDecoration(
+                            counterText: '',
+                            hintText: 'Phone number',
+                            hintStyle: AppTextStyles.bodyLarge.copyWith(
+                              color: AppColors.grey600,
+                            ),
+                            border: InputBorder.none,
+                            enabledBorder: InputBorder.none,
+                            focusedBorder: InputBorder.none,
+                            contentPadding: const EdgeInsets.symmetric(
+                              vertical: 18,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
-            ),
-          ),
-        ).animate().fadeIn(delay: 400.ms, duration: 500.ms).slideX(begin: -0.1, end: 0),
+            )
+            .animate()
+            .fadeIn(delay: 400.ms, duration: 500.ms)
+            .slideX(begin: -0.1, end: 0),
 
         const SizedBox(height: 18),
 
@@ -328,7 +380,12 @@ class _LoginScreenState extends State<LoginScreen>
                   width: _otpControllers[i].text.isNotEmpty ? 2 : 1,
                 ),
                 boxShadow: _otpControllers[i].text.isNotEmpty
-                    ? [BoxShadow(color: AppColors.primary.withValues(alpha: 0.2), blurRadius: 10)]
+                    ? [
+                        BoxShadow(
+                          color: AppColors.primary.withValues(alpha: 0.2),
+                          blurRadius: 10,
+                        ),
+                      ]
                     : null,
               ),
               child: Center(
@@ -338,7 +395,10 @@ class _LoginScreenState extends State<LoginScreen>
                   textAlign: TextAlign.center,
                   maxLength: 1,
                   obscureText: true,
-                  style: AppTextStyles.headlineMedium.copyWith(color: Colors.white),
+                  obscuringCharacter: '*',
+                  style: AppTextStyles.headlineMedium.copyWith(
+                    color: Colors.white,
+                  ),
                   decoration: const InputDecoration(
                     counterText: '',
                     border: InputBorder.none,
@@ -361,7 +421,14 @@ class _LoginScreenState extends State<LoginScreen>
           text: 'Verify & Continue',
           icon: Icons.check_rounded,
           isLoading: _isLoading,
-          onPressed: () {},
+          onPressed: () {
+            // Verify all OTP fields are filled
+            final otp = _otpControllers.map((c) => c.text).join();
+            if (otp.length == 6) {
+              // TODO: Add actual OTP verification logic
+              context.go('/onboarding');
+            }
+          },
         ),
 
         const SizedBox(height: 16),
@@ -382,7 +449,11 @@ class _SocialButton extends StatelessWidget {
   final String label;
   final VoidCallback onTap;
 
-  const _SocialButton({required this.icon, required this.label, required this.onTap});
+  const _SocialButton({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -403,7 +474,9 @@ class _SocialButton extends StatelessWidget {
             const SizedBox(width: 8),
             Text(
               label,
-              style: AppTextStyles.labelLarge.copyWith(color: AppColors.grey200),
+              style: AppTextStyles.labelLarge.copyWith(
+                color: AppColors.grey200,
+              ),
             ),
           ],
         ),
