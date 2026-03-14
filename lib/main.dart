@@ -15,10 +15,26 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
+  // Supabase Diagnostics
+  final url = AppConstants.supabaseUrl;
+  final key = AppConstants.supabaseAnonKey;
+  
+  print('--- Supabase Diagnostics ---');
+  print('URL: $url');
+  if (url.isEmpty) print('⚠️ WARNING: Supabase URL is empty!');
+  if (key.isEmpty) {
+    print('⚠️ WARNING: Supabase Anon Key is empty!');
+  } else {
+    print('Key Length: ${key.length}');
+    print('Key Start: ${key.substring(0, 5)}...');
+    print('Key End: ...${key.substring(key.length - 5)}');
+  }
+  print('---------------------------');
+
   // Initialize Supabase
   await Supabase.initialize(
-    url: AppConstants.supabaseUrl,
-    anonKey: AppConstants.supabaseAnonKey,
+    url: url,
+    anonKey: key,
   );
 
   // Initialize Audio Handler

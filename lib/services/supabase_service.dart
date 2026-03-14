@@ -158,7 +158,7 @@ class SupabaseService {
   Future<List<Episode>> getFeed({String? category, int limit = 20}) async {
     try {
       if (AppConstants.supabaseUrl.isEmpty) {
-        throw Exception('Supabase URL is empty');
+        throw Exception('Supabase URL is empty. Check your --dart-define flags.');
       }
       var query = _client
           .from('episodes')
@@ -173,6 +173,10 @@ class SupabaseService {
           .limit(limit);
       return data.map<Episode>((e) => Episode.fromJson(e)).toList();
     } catch (e) {
+      if (e.toString().contains('401')) {
+        print('❌ SUPABASE AUTH ERROR (401): Your Anon Key is invalid for this URL.');
+        print('Current URL: ${AppConstants.supabaseUrl}');
+      }
       print('Supabase getFeed failed, using SampleData: $e');
       return SampleData.sampleEpisodes.take(limit).toList();
     }
@@ -181,7 +185,7 @@ class SupabaseService {
   Future<List<Episode>> getTrending({int limit = 10}) async {
     try {
       if (AppConstants.supabaseUrl.isEmpty) {
-        throw Exception('Supabase URL is empty');
+        throw Exception('Supabase URL is empty. Check your --dart-define flags.');
       }
       final data = await _client
           .from('episodes')
@@ -190,6 +194,10 @@ class SupabaseService {
           .limit(limit);
       return data.map<Episode>((e) => Episode.fromJson(e)).toList();
     } catch (e) {
+      if (e.toString().contains('401')) {
+        print('❌ SUPABASE AUTH ERROR (401): Your Anon Key is invalid for this URL.');
+        print('Current URL: ${AppConstants.supabaseUrl}');
+      }
       print('Supabase getTrending failed, using SampleData: $e');
       return SampleData.sampleEpisodes.take(limit).toList();
     }
