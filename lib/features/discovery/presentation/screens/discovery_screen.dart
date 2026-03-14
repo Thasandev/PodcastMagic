@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -44,7 +43,9 @@ class _DiscoveryScreenState extends State<DiscoveryScreen>
             floating: true,
             pinned: true,
             expandedHeight: 170,
-            backgroundColor: isDark ? AppColors.darkBackground : AppColors.lightBackground,
+            backgroundColor: isDark
+                ? AppColors.darkBackground
+                : AppColors.lightBackground,
             flexibleSpace: FlexibleSpaceBar(
               background: SafeArea(
                 child: Padding(
@@ -61,13 +62,16 @@ class _DiscoveryScreenState extends State<DiscoveryScreen>
                       const SizedBox(height: 4),
                       Text(
                         'Find your next favourite podcast',
-                        style: AppTextStyles.bodySmall.copyWith(color: AppColors.grey500),
+                        style: AppTextStyles.bodySmall.copyWith(
+                          color: AppColors.grey500,
+                        ),
                       ),
                       const SizedBox(height: 16),
                       KSearchInput(
                         controller: _searchController,
                         hintText: 'Search podcasts, topics, creators...',
-                        onChanged: (val) => setState(() => _isSearching = val.isNotEmpty),
+                        onChanged: (val) =>
+                            setState(() => _isSearching = val.isNotEmpty),
                       ),
                     ],
                   ),
@@ -100,16 +104,62 @@ class _DiscoveryScreenState extends State<DiscoveryScreen>
             ),
           ),
         ],
-        body: TabBarView(
-          controller: _tabController,
+        body: _isSearching
+            ? _buildSearchResults()
+            : TabBarView(
+                controller: _tabController,
+                children: [
+                  _buildForYouTab(),
+                  _buildTrendingTab(),
+                  _buildCategoriesTab(),
+                  _buildImportTab(),
+                ],
+              ),
+      ),
+    );
+  }
+
+  Widget _buildSearchResults() {
+    final query = _searchController.text.toLowerCase();
+    final results = SampleData.sampleEpisodes.where((ep) {
+      return ep.title.toLowerCase().contains(query) ||
+          ep.podcastName.toLowerCase().contains(query);
+    }).toList();
+
+    if (results.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            _buildForYouTab(),
-            _buildTrendingTab(),
-            _buildCategoriesTab(),
-            _buildImportTab(),
+            Icon(Icons.search_off_rounded, size: 64, color: AppColors.grey600),
+            const SizedBox(height: 16),
+            Text(
+              'No results found for "$query"',
+              style: AppTextStyles.bodyLarge.copyWith(color: AppColors.grey500),
+            ),
           ],
         ),
-      ),
+      );
+    }
+
+    return ListView.builder(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 120),
+      itemCount: results.length,
+      itemBuilder: (context, index) {
+        final ep = results[index];
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 10),
+          child: KEpisodeCard(
+            title: ep.title,
+            podcastName: ep.podcastName,
+            duration: ep.formattedDuration,
+            category: ep.category,
+            saveCount: ep.saveCount,
+            onTap: () {},
+            onPlay: () {},
+          ),
+        ).animate().fadeIn(delay: (index * 50).ms, duration: 300.ms);
+      },
     );
   }
 
@@ -149,7 +199,9 @@ class _DiscoveryScreenState extends State<DiscoveryScreen>
               colors: [Color(0xFF1E2230), Color(0xFF252A40)],
             ),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: AppColors.darkDivider.withValues(alpha: 0.4)),
+            border: Border.all(
+              color: AppColors.darkDivider.withValues(alpha: 0.4),
+            ),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -157,12 +209,20 @@ class _DiscoveryScreenState extends State<DiscoveryScreen>
               Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 5,
+                    ),
                     decoration: BoxDecoration(
                       gradient: AppColors.primaryGradient,
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Text('🔥 HOT', style: AppTextStyles.overline.copyWith(color: Colors.white)),
+                    child: Text(
+                      '🔥 HOT',
+                      style: AppTextStyles.overline.copyWith(
+                        color: Colors.white,
+                      ),
+                    ),
                   ),
                   const Spacer(),
                   Text('Updated hourly', style: AppTextStyles.caption),
@@ -171,12 +231,16 @@ class _DiscoveryScreenState extends State<DiscoveryScreen>
               const SizedBox(height: 14),
               Text(
                 episodes.first.title,
-                style: AppTextStyles.headlineMedium.copyWith(color: Colors.white),
+                style: AppTextStyles.headlineMedium.copyWith(
+                  color: Colors.white,
+                ),
               ),
               const SizedBox(height: 6),
               Text(
                 episodes.first.podcastName,
-                style: AppTextStyles.bodySmall.copyWith(color: AppColors.grey400),
+                style: AppTextStyles.bodySmall.copyWith(
+                  color: AppColors.grey400,
+                ),
               ),
             ],
           ),
@@ -226,37 +290,40 @@ class _DiscoveryScreenState extends State<DiscoveryScreen>
         final cat = categories[index];
         final color = Color(cat['color'] as int);
         return KCard(
-          onTap: () {},
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(cat['icon'] as String, style: const TextStyle(fontSize: 32)),
-              Column(
+              onTap: () {},
+              padding: const EdgeInsets.all(16),
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    cat['name'] as String,
-                    style: AppTextStyles.labelLarge.copyWith(color: color),
+                    cat['icon'] as String,
+                    style: const TextStyle(fontSize: 32),
                   ),
-                  const SizedBox(height: 2),
-                  Container(
-                    width: 28,
-                    height: 3,
-                    decoration: BoxDecoration(
-                      color: color,
-                      borderRadius: BorderRadius.circular(2),
-                    ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        cat['name'] as String,
+                        style: AppTextStyles.labelLarge.copyWith(color: color),
+                      ),
+                      const SizedBox(height: 2),
+                      Container(
+                        width: 28,
+                        height: 3,
+                        decoration: BoxDecoration(
+                          color: color,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ],
-          ),
-        ).animate().fadeIn(delay: (index * 60).ms, duration: 400.ms).scale(
-              begin: const Offset(0.95, 0.95),
-              end: const Offset(1, 1),
-            );
+            )
+            .animate()
+            .fadeIn(delay: (index * 60).ms, duration: 400.ms)
+            .scale(begin: const Offset(0.95, 0.95), end: const Offset(1, 1));
       },
     );
   }
@@ -275,7 +342,9 @@ class _DiscoveryScreenState extends State<DiscoveryScreen>
                 colors: [Color(0xFF1E2230), Color(0xFF252A40)],
               ),
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: AppColors.darkDivider.withValues(alpha: 0.4)),
+              border: Border.all(
+                color: AppColors.darkDivider.withValues(alpha: 0.4),
+              ),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -288,7 +357,11 @@ class _DiscoveryScreenState extends State<DiscoveryScreen>
                         color: AppColors.error.withValues(alpha: 0.12),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Icon(Icons.play_circle_filled, color: AppColors.error, size: 24),
+                      child: const Icon(
+                        Icons.play_circle_filled,
+                        color: AppColors.error,
+                        size: 24,
+                      ),
                     ),
                     const SizedBox(width: 12),
                     Column(
@@ -296,11 +369,15 @@ class _DiscoveryScreenState extends State<DiscoveryScreen>
                       children: [
                         Text(
                           'YouTube Import',
-                          style: AppTextStyles.headlineSmall.copyWith(color: Colors.white),
+                          style: AppTextStyles.headlineSmall.copyWith(
+                            color: Colors.white,
+                          ),
                         ),
                         Text(
                           'Convert any video to audio',
-                          style: AppTextStyles.bodySmall.copyWith(color: AppColors.grey500),
+                          style: AppTextStyles.bodySmall.copyWith(
+                            color: AppColors.grey500,
+                          ),
                         ),
                       ],
                     ),
@@ -315,11 +392,18 @@ class _DiscoveryScreenState extends State<DiscoveryScreen>
                   ),
                   child: TextField(
                     controller: _youtubeUrlController,
-                    style: AppTextStyles.bodyMedium.copyWith(color: Colors.white),
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      color: Colors.white,
+                    ),
                     decoration: InputDecoration(
                       hintText: 'Paste YouTube URL...',
-                      hintStyle: AppTextStyles.bodyMedium.copyWith(color: AppColors.grey600),
-                      prefixIcon: const Icon(Icons.link_rounded, color: AppColors.grey500),
+                      hintStyle: AppTextStyles.bodyMedium.copyWith(
+                        color: AppColors.grey600,
+                      ),
+                      prefixIcon: const Icon(
+                        Icons.link_rounded,
+                        color: AppColors.grey500,
+                      ),
                       border: InputBorder.none,
                       enabledBorder: InputBorder.none,
                       focusedBorder: InputBorder.none,
@@ -343,9 +427,24 @@ class _DiscoveryScreenState extends State<DiscoveryScreen>
           // RSS Import
           Text('Other Sources', style: AppTextStyles.headlineSmall),
           const SizedBox(height: 12),
-          _ImportOption(icon: Icons.rss_feed_rounded, label: 'RSS Feed', desc: 'Import from any RSS URL', color: AppColors.accent),
-          _ImportOption(icon: Icons.podcasts_rounded, label: 'Apple Podcasts', desc: 'Import your subscriptions', color: AppColors.jade),
-          _ImportOption(icon: Icons.music_note_rounded, label: 'Spotify', desc: 'Import your liked shows', color: AppColors.primary),
+          _ImportOption(
+            icon: Icons.rss_feed_rounded,
+            label: 'RSS Feed',
+            desc: 'Import from any RSS URL',
+            color: AppColors.accent,
+          ),
+          _ImportOption(
+            icon: Icons.podcasts_rounded,
+            label: 'Apple Podcasts',
+            desc: 'Import your subscriptions',
+            color: AppColors.jade,
+          ),
+          _ImportOption(
+            icon: Icons.music_note_rounded,
+            label: 'Spotify',
+            desc: 'Import your liked shows',
+            color: AppColors.primary,
+          ),
         ],
       ),
     );
