@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import '../core/models/models.dart';
+import '../core/data/sample_data.dart';
+import '../core/constants/app_constants.dart';
 
 // Providers for the service
 final supabaseServiceProvider = Provider<SupabaseService>((ref) {
@@ -154,37 +156,65 @@ class SupabaseService {
   // ============ EPISODES ============
 
   Future<List<Episode>> getFeed({String? category, int limit = 20}) async {
-    var query = _client
-        .from('episodes')
-        .select('*, podcasts(title, image_url)');
+    try {
+      if (AppConstants.supabaseUrl.isEmpty) {
+        throw Exception('Supabase URL is empty');
+      }
+      var query = _client
+          .from('episodes')
+          .select('*, podcasts(title, image_url)');
 
-    if (category != null) {
-      query = query.eq('category', category);
+      if (category != null) {
+        query = query.eq('category', category);
+      }
+
+      final data = await query
+          .order('published_at', ascending: false)
+          .limit(limit);
+      return data.map<Episode>((e) => Episode.fromJson(e)).toList();
+    } catch (e) {
+      print('Supabase getFeed failed, using SampleData: $e');
+      return SampleData.sampleEpisodes.take(limit).toList();
     }
-
-    final data = await query
-        .order('published_at', ascending: false)
-        .limit(limit);
-    return data.map<Episode>((e) => Episode.fromJson(e)).toList();
   }
 
   Future<List<Episode>> getTrending({int limit = 10}) async {
-    final data = await _client
-        .from('episodes')
-        .select()
-        .order('save_count', ascending: false)
-        .limit(limit);
-    return data.map<Episode>((e) => Episode.fromJson(e)).toList();
+    try {
+      if (AppConstants.supabaseUrl.isEmpty) {
+        throw Exception('Supabase URL is empty');
+      }
+      final data = await _client
+          .from('episodes')
+          .select()
+          .order('save_count', ascending: false)
+          .limit(limit);
+      return data.map<Episode>((e) => Episode.fromJson(e)).toList();
+    } catch (e) {
+      print('Supabase getTrending failed, using SampleData: $e');
+      return SampleData.sampleEpisodes.take(limit).toList();
+    }
   }
 
   Future<List<Episode>> searchEpisodes(String query) async {
-    final data = await _client
-        .from('episodes')
-        .select()
-        .or('title.ilike.%$query%,description.ilike.%$query%')
-        .order('published_at', ascending: false)
-        .limit(20);
-    return data.map<Episode>((e) => Episode.fromJson(e)).toList();
+    try {
+      if (AppConstants.supabaseUrl.isEmpty) {
+        throw Exception('Supabase URL is empty');
+      }
+      final data = await _client
+          .from('episodes')
+          .select()
+          .or('title.ilike.%$query%,description.ilike.%$query%')
+          .order('published_at', ascending: false)
+          .limit(20);
+      return data.map<Episode>((e) => Episode.fromJson(e)).toList();
+    } catch (e) {
+      print('Supabase searchEpisodes failed, using SampleData fallback: $e');
+      return SampleData.sampleEpisodes
+          .where((ep) => 
+              ep.title.toLowerCase().contains(query.toLowerCase()) || 
+              ep.description.toLowerCase().contains(query.toLowerCase()))
+          .toList();
+    }
   }
 
   Future<Episode> importYouTubeEpisode(String youtubeUrl) async {
@@ -282,25 +312,33 @@ class SupabaseService {
     String? city,
     int limit = 20,
   }) async {
-    var query = _client
-        .from('reflections')
-        .select('*, profiles(name, avatar_url)')
-        .eq('is_public', true);
+    try {
+      if (AppConstants.supabaseUrl.isEmpty) {
+        throw Exception('Supabase URL is empty');
+      }
+      var query = _client
+          .from('reflections')
+          .select('*, profiles(name, avatar_url)')
+          .eq('is_public', true);
 
-    if (city != null) {
-      query = query.eq('city', city);
+      if (city != null) {
+        query = query.eq('city', city);
+      }
+
+      final data = await query.order('created_at', ascending: false).limit(limit);
+      return data
+          .map<Reflection>(
+            (e) => Reflection.fromJson({
+              ...e,
+              'user_name': e['profiles']?['name'] ?? 'Anonymous',
+              'user_avatar_url': e['profiles']?['avatar_url'],
+            }),
+          )
+          .toList();
+    } catch (e) {
+      print('Supabase getReflections failed, using SampleData: $e');
+      return SampleData.sampleReflections.take(limit).toList();
     }
-
-    final data = await query.order('created_at', ascending: false).limit(limit);
-    return data
-        .map<Reflection>(
-          (e) => Reflection.fromJson({
-            ...e,
-            'user_name': e['profiles']?['name'] ?? 'Anonymous',
-            'user_avatar_url': e['profiles']?['avatar_url'],
-          }),
-        )
-        .toList();
   }
 
   Future<void> upvoteReflection(String reflectionId) async {
