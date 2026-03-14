@@ -8,6 +8,7 @@ import '../../../../core/data/sample_data.dart';
 import '../../../../core/widgets/shared_widgets.dart';
 import '../../data/repositories/podcast_repository.dart';
 import '../../../../core/models/models.dart';
+import '../../../../services/supabase_service.dart';
 
 class DiscoveryScreen extends ConsumerStatefulWidget {
   const DiscoveryScreen({super.key});
@@ -162,6 +163,65 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen>
     }
   }
 
+  void _handlePodcastTap(PodcastSearchResult podcast) async {
+    if (podcast.rssUrl.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('This podcast does not have a valid RSS feed.')),
+      );
+      return;
+    }
+
+    _showSyncingDialog();
+
+    try {
+      final episodes = await ref
+          .read(supabaseServiceProvider)
+          .syncAndGetEpisodes(podcast.rssUrl);
+
+      if (mounted) {
+        Navigator.pop(context); // Close dialog
+
+        if (episodes.isNotEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Imported ${episodes.length} episodes from ${podcast.title}'),
+              action: SnackBarAction(
+                label: 'PLAY',
+                onPressed: () {
+                  // TODO: Implement playback logic
+                },
+              ),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to import podcast: $e')),
+        );
+      }
+    }
+  }
+
+  void _showSyncingDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const CircularProgressIndicator(),
+            const SizedBox(height: 20),
+            Text('Syncing episodes...', style: AppTextStyles.bodyMedium),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildSearchResults() {
     if (_isLoadingResults) {
       return const Center(child: CircularProgressIndicator());
@@ -192,7 +252,7 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen>
         return Padding(
           padding: const EdgeInsets.only(bottom: 10),
           child: KCard(
-            onTap: () {},
+            onTap: () => _handlePodcastTap(result),
             padding: const EdgeInsets.all(12),
             child: Row(
               children: [
@@ -229,9 +289,12 @@ class _DiscoveryScreenState extends ConsumerState<DiscoveryScreen>
                     ],
                   ),
                 ),
-                const Icon(
-                  Icons.add_circle_outline_rounded,
-                  color: AppColors.primary,
+                IconButton(
+                  icon: const Icon(
+                    Icons.add_circle_outline_rounded,
+                    color: AppColors.primary,
+                  ),
+                  onPressed: () => _handlePodcastTap(result),
                 ),
               ],
             ),

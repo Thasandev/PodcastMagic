@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/widgets/shared_widgets.dart';
+import '../../../../services/supabase_service.dart';
 
-class SettingsScreen extends StatefulWidget {
+class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
 
   @override
-  State<SettingsScreen> createState() => _SettingsScreenState();
+  ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
 }
 
-class _SettingsScreenState extends State<SettingsScreen> {
+class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   bool _darkMode = true;
   bool _autoDownload = false;
   bool _pushNotifications = true;
@@ -156,7 +158,31 @@ class _SettingsScreenState extends State<SettingsScreen> {
           // ── Danger zone ──
           Center(
             child: TextButton(
-              onPressed: () {},
+              onPressed: () async {
+                final confirmed = await showDialog<bool>(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('Sign Out'),
+                    content: const Text('Are you sure you want to sign out?'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, false),
+                        child: const Text('Cancel'),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, true),
+                        child: const Text('Sign Out',
+                            style: TextStyle(color: AppColors.error)),
+                      ),
+                    ],
+                  ),
+                );
+
+                if (confirmed == true && mounted) {
+                  await ref.read(supabaseServiceProvider).signOut();
+                  if (mounted) context.go('/login');
+                }
+              },
               child: Text(
                 'Sign Out',
                 style: AppTextStyles.labelLarge.copyWith(
