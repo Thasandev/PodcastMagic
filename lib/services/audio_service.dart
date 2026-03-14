@@ -1,7 +1,7 @@
-import 'package:audio_service/audio_service.dart';
+import 'package:audio_service/audio_service.dart' as audio_pkg;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'audio_handler.dart';
-import '../core/models/models.dart';
+import 'package:kaan/services/audio_handler.dart';
+import 'package:kaan/core/models/models.dart';
 
 final audioHandlerProvider = Provider<KaanAudioHandler>((ref) {
   throw UnimplementedError(); // Initialized in main
