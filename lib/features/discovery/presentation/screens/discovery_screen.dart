@@ -5,7 +5,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_text_styles.dart';
 import '../../../../core/data/sample_data.dart';
 import '../../../../core/widgets/shared_widgets.dart';
-import '../data/repositories/podcast_repository.dart';
+import '../../data/repositories/podcast_repository.dart';
 import '../../../../core/models/models.dart';
 
 class DiscoveryScreen extends ConsumerStatefulWidget {
